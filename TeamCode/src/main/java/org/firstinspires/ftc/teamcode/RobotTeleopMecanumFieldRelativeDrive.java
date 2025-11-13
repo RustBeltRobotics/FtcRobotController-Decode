@@ -63,6 +63,11 @@ public class RobotTeleopMecanumFieldRelativeDrive extends OpMode {
     DcMotor shooter;
 
 
+    DcMotor intake;
+
+    DcMotor feeder;
+
+
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
 
@@ -74,6 +79,17 @@ public class RobotTeleopMecanumFieldRelativeDrive extends OpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
 
         shooter = hardwareMap.get(DcMotor.class, "right_drive");
+
+
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        feeder = hardwareMap.get(DcMotor.class, "feeder");
+
+        intake.setDirection(DcMotor.Direction.FORWARD);
+        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        feeder.setDirection(DcMotor.Direction.FORWARD);
+        feeder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         shooter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -123,6 +139,9 @@ public class RobotTeleopMecanumFieldRelativeDrive extends OpMode {
         }
 
         shooter.setPower(gamepad1.right_trigger * 1.5 - gamepad1.left_trigger * 1.5);
+
+        intake.setPower(gamepad2.left_stick_y * 1.5);
+        feeder.setPower(gamepad2.right_stick_y * 1.5);
     }
 
     // This routine drives the robot field relative
