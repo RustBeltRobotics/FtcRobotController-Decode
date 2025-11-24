@@ -78,7 +78,7 @@ public class RobotTeleopMecanumFieldRelativeDrive extends OpMode {
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
 
-        shooter = hardwareMap.get(DcMotor.class, "right_drive");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
 
 
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -132,15 +132,22 @@ public class RobotTeleopMecanumFieldRelativeDrive extends OpMode {
         }
         // If you press the left bumper, you get a drive from the point of view of the robot
         // (much like driving an RC vehicle)
-        if (gamepad1.left_bumper) {
-            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-        } else {
-            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-        }
+
+//        drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+
+        // 90° rotation
+        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+
+//        if (gamepad1.left_bumper) {
+//            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+//        } else {
+//            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+//        }
 
         shooter.setPower(gamepad1.right_trigger * 1.5 - gamepad1.left_trigger * 1.5);
 
-        intake.setPower(gamepad2.left_stick_y * 1.5);
+        intake.setPower(-gamepad2.left_stick_y * 1.5);
         feeder.setPower(gamepad2.right_stick_y * 1.5);
     }
 
