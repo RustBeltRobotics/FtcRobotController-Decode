@@ -145,7 +145,7 @@ public class RobotTeleopMecanumFieldRelativeDrive extends OpMode {
 //            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 //        }
 
-        shooter.setPower(gamepad1.right_trigger * 1.5 - gamepad1.left_trigger * 1.5);
+        shooter.setPower(((gamepad1.right_trigger * 1.5 - gamepad1.left_trigger * 1.5) + (gamepad2.right_trigger * 1.5 - gamepad2.left_trigger * 1.5))/2.0);
 
         intake.setPower(-gamepad2.left_stick_y * 1.5);
         feeder.setPower(gamepad2.right_stick_y * 1.5);
