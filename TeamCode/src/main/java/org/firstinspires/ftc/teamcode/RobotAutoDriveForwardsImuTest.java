@@ -1,0 +1,249 @@
+/* Copyright (c) 2025 FIRST. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.hardware.rev.Rev9AxisImu;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.ImuOrientationOnRobot;
+
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+
+
+import java.util.Locale;
+
+/*
+ * This OpMode illustrates how to program your robot to drive field relative.  This means
+ * that the robot drives the direction you push the joystick regardless of the current orientation
+ * of the robot.
+ *
+ * This OpMode assumes that you have four mecanum wheels each on its own motor named:
+ *   front_left_motor, front_right_motor, back_left_motor, back_right_motor
+ *
+ *   and that the left motors are flipped such that when they turn clockwise the wheel moves backwards
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ *
+ */
+@Autonomous(name = "Robot: Field Relative Mecanum Drive", group = "Robot")
+public class RobotAutoDriveForwardsImuTest extends LinearOpMode {
+    // This declares the four motors needed
+    DcMotor frontLeftDrive;
+    DcMotor frontRightDrive;
+    DcMotor backLeftDrive;
+    DcMotor backRightDrive;
+
+    DcMotor shooter;
+
+
+    DcMotor intake;
+
+    DcMotor feeder;
+
+    DcMotor feeder2;
+
+    // The IMU sensor object
+    Rev9AxisImu imu;
+
+    // State used for updating telemetry
+    Orientation angles;
+
+
+    boolean shooterToggle = false;
+    boolean lastGamepadX = false;
+
+
+    // This declares the IMU needed to get the current direction the robot is facing
+//    IMU imu;
+
+    @Override
+    public void runOpMode() {
+
+//        Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(Rev9AxisImuOrientationOnRobot.xyzOrientation());
+        Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.BACKWARD, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.DOWN));
+
+        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+        // and named "imu".
+        imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
+        imu.initialize(parameters);
+
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
+        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
+
+
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        feeder = hardwareMap.get(DcMotor.class, "feeder");
+        feeder2 = hardwareMap.get(DcMotor.class, "feeder2");
+
+        intake.setDirection(DcMotor.Direction.FORWARD);
+        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        feeder.setDirection(DcMotor.Direction.FORWARD);
+        feeder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        feeder2.setDirection(DcMotor.Direction.FORWARD);
+        feeder2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+        shooter.setDirection(DcMotor.Direction.FORWARD);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // We set the left motors in reverse which is needed for drive trains where the left
+        // motors are opposite to the right ones.
+        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        // This uses RUN_USING_ENCODER to be more accurate.   If you don't have the encoder
+        // wires, you should remove these
+        frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
+//        imu = hardwareMap.get(IMU.class, "imu");
+        // This needs to be changed to match the orientation on your robot
+        RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
+        RevHubOrientationOnRobot.UsbFacingDirection usbDirection =
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
+
+//        RevHubOrientationOnRobot orientationOnRobot = new
+//                RevHubOrientationOnRobot(logoDirection, usbDirection);
+//        imu.initialize(new IMU.Parameters(orientationOnRobot));
+
+        waitForStart();
+
+        int counter = 0;
+        while (true) {
+
+//            drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+//            shooter.setPower(shooterToggle ? -1.9 : (-invert_all_emergency * (((gamepad1.left_trigger * 1.9 - gamepad1.right_trigger * 1.9) + (gamepad2.left_trigger * 1.9 - gamepad2.right_trigger * 1.9))/2.0)));
+//            intake.setPower(avg(-gamepad2.left_stick_y * 1.9,  invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.a) * 1.9));
+//            feeder.setPower(avg(gamepad2.right_stick_y * 1.9,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b) * 1.9));
+//            feeder2.setPower(avg(gamepad2.right_stick_x * 1.9, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * 1.9));
+
+            angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+            if (counter == 100) {
+                driveFieldRelative(10, 0, 0, 1);
+                telemetry.addData("driving", 42);
+            }
+
+            telemetry.addData("connection", imu.getConnectionInfo());
+
+            telemetry.addData("heading", formatAngle(angles.angleUnit, angles.firstAngle));
+
+            telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
+
+            telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
+
+            telemetry.update();
+            counter++;
+        }
+    }
+
+    String formatAngle(AngleUnit angleUnit, double angle) {
+        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
+    }
+
+    String formatDegrees(double degrees){
+        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
+    }
+
+    private double avg(double a, double b) {
+        return (a + b)/2;
+    }
+
+    private double boolToDoubleBecauseItWontCast(boolean input) {
+        return input ? 1.0 : 0.0;
+    }
+
+    // This routine drives the robot field relative
+    private void driveFieldRelative(double forward, double right, double rotate, double fac) {
+        // First, convert direction being asked to drive to polar coordinates
+        double theta = Math.atan2(forward, right);
+        double r = Math.hypot(right, forward);
+
+        // Second, rotate angle by the angle the robot is pointing
+        theta = AngleUnit.normalizeRadians(theta -
+                imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+
+        // Third, convert back to cartesian
+        double newForward = r * Math.sin(theta);
+        double newRight = r * Math.cos(theta);
+
+        // Finally, call the drive method with robot relative forward and right amounts
+        drive(newForward, newRight, rotate, fac);
+    }
+
+    // Thanks to FTC16072 for sharing this code!!
+    public void drive(double forward, double right, double rotate, double fac) {
+        double frontLeftPower = forward + right + rotate;
+        double frontRightPower = forward - right - rotate;
+        double backRightPower = forward + right - rotate;
+        double backLeftPower = forward - right + rotate;
+
+        frontLeftDrive.setPower(0.3);
+        frontRightDrive.setPower(0.3);
+        backLeftDrive.setPower(0.3);
+        backRightDrive.setPower(0.3);
+
+        frontLeftDrive.setTargetPosition((int) (fac * frontLeftPower));
+        frontRightDrive.setTargetPosition((int) (fac * frontRightPower));
+        backLeftDrive.setTargetPosition((int) (fac * backLeftPower));
+        backRightDrive.setTargetPosition((int) (fac * backRightPower));
+
+
+    }
+}
