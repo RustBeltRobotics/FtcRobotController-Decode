@@ -28,8 +28,11 @@
  */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.Rev9AxisImu;
+import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -37,6 +40,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import java.util.Locale;
 
 /*
  * This OpMode illustrates how to program your robot to drive field relative.  This means
@@ -53,7 +61,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
  *
  */
 @TeleOp(name = "Robot: Field Relative Mecanum Drive", group = "Robot")
-public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
+public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOpMode {
     // This declares the four motors needed
     DcMotor frontLeftDrive;
     DcMotor frontRightDrive;
@@ -69,6 +77,11 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
 
     DcMotor feeder2;
 
+    Rev9AxisImu imu;
+
+    Orientation angles;
+
+
 
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
@@ -78,7 +91,15 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
 //    IMU imu;
 
     @Override
-    public void init() {
+    public void runOpMode() {
+
+        Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.FORWARD, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.DOWN));
+
+
+        imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
+        imu.initialize(parameters);
+
+
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
@@ -132,6 +153,14 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
 //        RevHubOrientationOnRobot orientationOnRobot = new
 //                RevHubOrientationOnRobot(logoDirection, usbDirection);
 //        imu.initialize(new IMU.Parameters(orientationOnRobot));
+
+
+        waitForStart();
+
+
+        while (true) {
+            loop2();
+        }
     }
 
     private double avg(double a, double b) {
@@ -142,12 +171,21 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
         return input ? 1.0 : 0.0;
     }
 
-    @Override
-    public void loop() {
+    public void loop2() {
         telemetry.addLine("Press A to reset Yaw");
         telemetry.addLine("Hold left bumper to drive in robot relative");
         telemetry.addLine("The left joystick sets the robot direction");
         telemetry.addLine("Moving the right joystick left and right turns the robot");
+
+        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        telemetry.addData("connection", imu.getConnectionInfo());
+
+        telemetry.addData("heading", formatAngle(angles.angleUnit, angles.firstAngle));
+        telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
+        telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
+
+
 
         double invert_all_emergency = ((Math.min((gamepad1.left_bumper ? 1 : 0) + (gamepad2.left_bumper ? 1 : 0), 1.0)) * 2 - 1);
 
@@ -162,8 +200,13 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
 //        drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
         // 90° rotation
-        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+//        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
+        if (gamepad1.right_bumper) {
+            driveFieldRelative(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+        } else {
+            drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+        }
 
 //        if (gamepad1.left_bumper) {
 //            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
@@ -183,6 +226,15 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
         intake.setPower(avg(-gamepad2.left_stick_y * 1.9,  invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.a) * 1.9));
         feeder.setPower(avg(gamepad2.right_stick_y * 1.9,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b) * 1.9));
         feeder2.setPower(avg(gamepad2.right_stick_x * 1.9, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * 1.9));
+        telemetry.update();
+    }
+
+    String formatAngle(AngleUnit angleUnit, double angle) {
+        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
+    }
+
+    String formatDegrees(double degrees){
+        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
 
     // This routine drives the robot field relative
@@ -192,8 +244,8 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends OpMode {
         double r = Math.hypot(right, forward);
 
         // Second, rotate angle by the angle the robot is pointing
-//        theta = AngleUnit.normalizeRadians(theta -
-//                imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        theta = AngleUnit.normalizeRadians(theta -
+                imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
 
         // Third, convert back to cartesian
         double newForward = r * Math.sin(theta);
