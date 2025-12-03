@@ -225,8 +225,8 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
 
         shooter.setPower(shooterToggle ? -1.9 : (-invert_all_emergency * (((gamepad1.left_trigger * 1.9 - gamepad1.right_trigger * 1.9) + (gamepad2.left_trigger * 1.9 - gamepad2.right_trigger * 1.9))/2.0)));
 
-        intake.setPower(avg(-gamepad2.left_stick_y * 1.9,  invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.a) * 1.9));
-        feeder.setPower(avg(gamepad2.right_stick_y * 1.9,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b) * 1.9));
+        intake.setPower(avg(-gamepad2.left_stick_y * 1.9,  invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.a || gamepad1.b || gamepad1.y) * 1.9));
+        feeder.setPower(avg(gamepad2.right_stick_y * 1.9,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * 1.9));
         feeder2.setPower(avg(gamepad2.right_stick_x * 1.9, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * 1.9));
         telemetry.update();
     }
