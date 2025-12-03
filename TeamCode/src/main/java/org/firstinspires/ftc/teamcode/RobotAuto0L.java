@@ -155,6 +155,8 @@ public class RobotAuto0L extends LinearOpMode {
 
         waitForStart();
 
+        stateStartTime = getRuntime();
+
 
         while (true) {
             loop2();
@@ -210,20 +212,20 @@ public class RobotAuto0L extends LinearOpMode {
             }
         } else if (state == 2) {
             telemetry.addLine("Drive 1...");
-//            driveFieldRelative(0.3, 0, 0);
-            if (getRuntime() - stateStartTime > 1.0) {
+            driveFieldRelative(0, -0.3, 0);
+            if (getRuntime() - stateStartTime > 2.0) {
                 state = 3;
                 stateStartTime = getRuntime();
             }
         } else if (state == 3) {
             telemetry.addLine("Drive 2...");
-//            driveFieldRelative(0, -0.3, 0);
-            if (getRuntime() - stateStartTime > 1.0) {
+            driveFieldRelative(-0.3, 0, 0);
+            if (getRuntime() - stateStartTime > 2.0) {
                 state = 4;
                 stateStartTime = getRuntime();
             }
         } else if (state == 4) {
-//            driveFieldRelative(0, 0, 0);
+            driveFieldRelative(0, 0, 0);
         }
 
         telemetry.update();
