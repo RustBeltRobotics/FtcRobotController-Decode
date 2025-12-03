@@ -202,8 +202,10 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         // 90° rotation
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        if (gamepad1.right_bumper) {
+        if (!gamepad1.right_bumper) {
+            telemetry.addLine("RIGHT BUMPER");
             driveFieldRelative(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+//            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
             drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
         }
@@ -244,8 +246,8 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         double r = Math.hypot(right, forward);
 
         // Second, rotate angle by the angle the robot is pointing
-        theta = AngleUnit.normalizeRadians(theta -
-                imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        theta = AngleUnit.normalizeRadians(theta - angles.firstAngle * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
+                //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
 
         // Third, convert back to cartesian
         double newForward = r * Math.sin(theta);
