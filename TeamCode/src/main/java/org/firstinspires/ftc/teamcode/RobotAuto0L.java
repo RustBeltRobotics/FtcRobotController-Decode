@@ -157,7 +157,7 @@ public class RobotAuto0L extends LinearOpMode {
         waitForStart();
 
         stateStartTime = getRuntime();
-
+        imu.resetYaw();
 
         while (true) {
             loop2();
@@ -214,19 +214,24 @@ public class RobotAuto0L extends LinearOpMode {
         } else if (state == 2) {
             telemetry.addLine("Drive 1...");
             driveFieldRelative(0, -0.3, 0);
-            if (getRuntime() - stateStartTime > 2.0) {
+            if (getRuntime() - stateStartTime > 1.0) {
                 state = 3;
                 stateStartTime = getRuntime();
             }
         } else if (state == 3) {
             telemetry.addLine("Drive 2...");
             driveFieldRelative(-0.3, 0, 0);
-            if (getRuntime() - stateStartTime > 2.0) {
+            if (getRuntime() - stateStartTime > 1.0) {
                 state = 4;
                 stateStartTime = getRuntime();
             }
         } else if (state == 4) {
-            driveFieldRelative(0, 0, 0);
+//            driveFieldRelative(0, 0, 0);
+
+            frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
             frontLeftDrive.setPower(0);
@@ -289,21 +294,21 @@ public class RobotAuto0L extends LinearOpMode {
         // speed.
         double coef = 100.0;
 
-        frontLeftDrive.setPower(0.3);
-        frontRightDrive.setPower(0.3);
-        backLeftDrive.setPower(0.3);
-        backRightDrive.setPower(0.3);
+        frontLeftDrive.setPower(1.0);
+        frontRightDrive.setPower(1.0);
+        backLeftDrive.setPower(1.0);
+        backRightDrive.setPower(1.0);
 
 
         frontLeftDrive.setTargetPosition(frontLeftDrive.getTargetPosition() + (int) (coef * maxSpeed * (frontLeftPower / maxPower)));
         frontRightDrive.setTargetPosition(frontRightDrive.getTargetPosition() + (int) (coef * maxSpeed * (frontRightPower / maxPower)));
         backLeftDrive.setTargetPosition(backLeftDrive.getTargetPosition() + (int) (coef * maxSpeed * (backLeftPower / maxPower)));
         backRightDrive.setTargetPosition(backRightDrive.getTargetPosition() + (int) (coef * maxSpeed * (backRightPower / maxPower)));
+
         frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
 
     }
 }
