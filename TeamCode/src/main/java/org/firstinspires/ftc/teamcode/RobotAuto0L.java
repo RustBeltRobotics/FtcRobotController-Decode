@@ -135,6 +135,7 @@ public class RobotAuto0L extends LinearOpMode {
         backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+
         frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -226,6 +227,12 @@ public class RobotAuto0L extends LinearOpMode {
             }
         } else if (state == 4) {
             driveFieldRelative(0, 0, 0);
+
+
+            frontLeftDrive.setPower(0);
+            frontRightDrive.setPower(0);
+            backLeftDrive.setPower(0);
+            backRightDrive.setPower(0);
         }
 
         telemetry.update();
@@ -280,9 +287,23 @@ public class RobotAuto0L extends LinearOpMode {
         // We multiply by maxSpeed so that it can be set lower for outreaches
         // When a young child is driving the robot, we may not want to allow full
         // speed.
-        frontLeftDrive.setPower(maxSpeed * (frontLeftPower / maxPower));
-        frontRightDrive.setPower(maxSpeed * (frontRightPower / maxPower));
-        backLeftDrive.setPower(maxSpeed * (backLeftPower / maxPower));
-        backRightDrive.setPower(maxSpeed * (backRightPower / maxPower));
+        double coef = 100.0;
+
+        frontLeftDrive.setPower(0.3);
+        frontRightDrive.setPower(0.3);
+        backLeftDrive.setPower(0.3);
+        backRightDrive.setPower(0.3);
+
+
+        frontLeftDrive.setTargetPosition(frontLeftDrive.getTargetPosition() + (int) (coef * maxSpeed * (frontLeftPower / maxPower)));
+        frontRightDrive.setTargetPosition(frontRightDrive.getTargetPosition() + (int) (coef * maxSpeed * (frontRightPower / maxPower)));
+        backLeftDrive.setTargetPosition(backLeftDrive.getTargetPosition() + (int) (coef * maxSpeed * (backLeftPower / maxPower)));
+        backRightDrive.setTargetPosition(backRightDrive.getTargetPosition() + (int) (coef * maxSpeed * (backRightPower / maxPower)));
+        frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+
     }
 }
