@@ -164,7 +164,7 @@ public class RobotAuto0L extends LinearOpMode {
         stateStartTime = getRuntime();
         imu.resetYaw();
 
-        while (true) {
+        while (opModeIsActive()) {
             loop2();
         }
     }
