@@ -86,7 +86,7 @@ public class RobotAuto0L extends LinearOpMode {
 
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
-    
+
 
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
@@ -130,17 +130,7 @@ public class RobotAuto0L extends LinearOpMode {
         driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive);
         driveController.init();
 
-
-//        imu = hardwareMap.get(IMU.class, "imu");
-        // This needs to be changed to match the orientation on your robot
-        RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
-                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
-        RevHubOrientationOnRobot.UsbFacingDirection usbDirection =
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
-
-//        RevHubOrientationOnRobot orientationOnRobot = new
-//                RevHubOrientationOnRobot(logoDirection, usbDirection);
-//        imu.initialize(new IMU.Parameters(orientationOnRobot));
+        
 
 
         waitForStart();
