@@ -84,7 +84,7 @@ public class RobotAuto0L extends LinearOpMode {
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
-    PIDController drivingPID = new PIDController(1.0, 0.2, 0.6);
+    PIDController drivingPID = new PIDController(1.0, 0.2, 0.7);
 
 
     // This declares the IMU needed to get the current direction the robot is facing
