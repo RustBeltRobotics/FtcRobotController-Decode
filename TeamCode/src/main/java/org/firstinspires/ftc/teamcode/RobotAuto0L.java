@@ -78,13 +78,13 @@ public class RobotAuto0L extends LinearOpMode {
 
     Orientation angles;
 
-    int state = 0;
+    int state = 3; // set to 3 to start driving immediately
     double stateStartTime = 0;
 
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
-    PIDController drivingPID = new PIDController(1.0, 0.1, 0.01);
+    PIDController drivingPID = new PIDController(1.0, 0.2, 0.6);
 
 
     // This declares the IMU needed to get the current direction the robot is facing
@@ -222,8 +222,8 @@ public class RobotAuto0L extends LinearOpMode {
             }
         } else if (state == 3) {
             telemetry.addLine("Drive 2...");
-            driveFieldRelative(-0.3, 0, 0);
-            if (getRuntime() - stateStartTime > 1.0) {
+            driveFieldRelative(-0.4, 0, 0);
+            if (getRuntime() - stateStartTime > 3.0) {
                 state = 4;
                 stateStartTime = getRuntime();
             }
@@ -264,7 +264,7 @@ public class RobotAuto0L extends LinearOpMode {
         ;//AngleUnit.normalizeRadians(theta -
                 //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
         drivingPID.setTarget(theta);
-        
+
         theta = drivingPID.loop(currentRotation);
 
         // Third, convert back to cartesian
