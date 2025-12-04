@@ -84,6 +84,8 @@ public class RobotAuto0L extends LinearOpMode {
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
+    PIDController drivingPID = new PIDController(1.0, 0.1, 0.01);
+
 
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
@@ -257,9 +259,13 @@ public class RobotAuto0L extends LinearOpMode {
         double theta = Math.atan2(forward, right);
         double r = Math.hypot(right, forward);
 
-        // Second, rotate angle by the angle the robot is pointing
-        theta = AngleUnit.normalizeRadians(theta - angles.firstAngle * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
+        double currentRotation = AngleUnit.normalizeRadians(angles.firstAngle * (3.141592653589/180));
+
+        ;//AngleUnit.normalizeRadians(theta -
                 //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        drivingPID.setTarget(theta);
+        
+        theta = drivingPID.loop(currentRotation);
 
         // Third, convert back to cartesian
         double newForward = r * Math.sin(theta);
