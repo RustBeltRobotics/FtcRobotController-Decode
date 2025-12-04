@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorControllerEx;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -190,9 +191,18 @@ public class RobotAuto0L extends LinearOpMode {
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
+        // This does not work!
 //        telemetry.addData("frontRightDrive Current", frontRightDrive.getCurrent(CurrentUnit.MILLIAMPS));
 
-        telemetry.addData("frontRightDrive Current", ((DcMotorControllerEx) frontRightDrive.getController()).getMotorCurrent(frontRightDrive.getPortNumber(), CurrentUnit.MILLIAMPS));
+        // This works!
+//        telemetry.addData("frontRightDrive Current", ((DcMotorControllerEx) frontRightDrive.getController()).getMotorCurrent(frontRightDrive.getPortNumber(), CurrentUnit.MILLIAMPS));
+
+        // This works!
+        telemetry.addData("frontLeftDrive Current", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+        telemetry.addData("frontRightDrive Current", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+        telemetry.addData("backLeftDrive Current", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+        telemetry.addData("backRightDrive Current", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+
 
         if (state == 0) {
             // spin up shooter
