@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOError;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 
 import java.nio.channels.ServerSocketChannel;
@@ -35,9 +36,12 @@ public class WebInterface implements Runnable {
     @Override
     public void run() {
         try {
+            System.out.print("Listening on port");
+            System.out.println(this.port);
             listen(this.port);
         } catch (IOException e) {
-
+            System.out.print("Uh oh:");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -61,6 +65,11 @@ public class WebInterface implements Runnable {
         return parameters.get(key);
     }
 
+    public void stop() throws IOException {
+        System.out.println("Stopping web interface...");
+        this.serverSocket.close(); // TODO: make this more graceful
+    }
+
     private void listen(int port) throws IOException {
         this.mode = Mode.LISTEN;
         this.serverSocket = new ServerSocket(port);
@@ -73,24 +82,48 @@ public class WebInterface implements Runnable {
     }
 
     private void handleConnection(Socket client) throws IOException {
-        DataInputStream d = new DataInputStream(client.getInputStream());
-        String request = d.readUTF();
+        System.out.println("New connection");
+        InputStreamReader d = new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8);
+//.readUTF(); // oops this is modified utf-8 apparently
+        String request = d.toString();
         String[] lines = request.split("(\r\n)|\n");
 
+        System.out.println("parsed 1");
+
         String requestLine = lines[0];
-        Pattern pattern = Pattern.compile("([A-Z]+) ([^\\s\\r\\n]+) ([^\\s\\r\\n]+)");
+        Pattern pattern = Pattern.compile("([A-Z]+) ([^\\s\\r\\n]+) ([^\\s\\r\\n]+).+");
         Matcher matched = pattern.matcher(requestLine);
+
+        System.out.println("parsed 2");
+
+        if (!matched.matches()) {
+            System.out.println("Parsing failed, no match.");
+            String response = "HTTP/1.1 400 Bad Request\r\n\r\nparsing failed";
+            DataOutputStream o = new DataOutputStream(client.getOutputStream());
+            o.write(response.getBytes(StandardCharsets.UTF_8));
+            o.flush();
+
+            System.out.println("sent failiure response");
+            return;
+        }
 
         String method = matched.group(1);
         String route = matched.group(2);
         String protocol = matched.group(3);
 
+        System.out.println("parsed 3");
+
         String[] headers = Arrays.copyOfRange(lines, 1, lines.length);
         String response = handleRoute(route, method, protocol, headers);
+
+        System.out.println("parsed 4");
 
         DataOutputStream o = new DataOutputStream(client.getOutputStream());
         o.write(response.getBytes(StandardCharsets.UTF_8));
         o.flush();
+
+
+        System.out.println("sent response, done.");
     }
 
     private String handleRoute(String route, String method, String protocol, String[] headers) {
@@ -101,7 +134,7 @@ public class WebInterface implements Runnable {
         if (method.equals("GET")) {
             switch (justRoute) {
                 case "/":
-
+                    System.out.println("page / requested");
                     return "HTTP/1.1 200 OK\r\n\r\n" + indexHTML();
                 case "/setValue":
                     String[] split = search.split(":");

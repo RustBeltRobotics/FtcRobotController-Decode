@@ -102,6 +102,7 @@ public class RobotAuto0L extends LinearOpMode {
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
 
+//        webInterface = new WebInterface(8000 + (int)(Math.random() * 800)); // terrible workaround to not releasing port properly
         webInterface = new WebInterface(8885);
         webInterface.addParameter("Kp_drive", 1.0);
         webInterface.addParameter("Ki_drive", 0.1);
@@ -109,6 +110,7 @@ public class RobotAuto0L extends LinearOpMode {
 
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
+
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
