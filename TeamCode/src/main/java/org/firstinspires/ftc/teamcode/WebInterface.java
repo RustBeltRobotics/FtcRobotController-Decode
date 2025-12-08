@@ -13,6 +13,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +42,7 @@ public class WebInterface implements Runnable {
     }
 
     WebInterface(int port) {
+        this.parameters = new HashMap<String, Double>();
         this.mode = Mode.INITIALIZE;
         this.port = port;
     }
