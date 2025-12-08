@@ -7,43 +7,63 @@ import java.io.IOError;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import java.nio.channels.ServerSocketChannel;
+
 import java.net.Socket;
 import java.util.Map;
 
-public class WebInterface {
 
+enum Mode {
+    INITIALIZE,
+    LISTEN
+}
+
+public class WebInterface implements Runnable {
 
     ServerSocket serverSocket;
     Map<String, Double> parameters;
 
-    WebInterface() {
+    Mode mode; // prevent calling addParameter after listen is called, for thread safety
 
+    int port = 8081;
+
+    @Override
+    public void run() {
+        listen(this.port);
     }
 
-    void addParameter(String key, double defaultValue) {
+    WebInterface(int port) {
+        this.mode = Mode.INITIALIZE;
+        this.port = port;
+    }
+
+    public void addParameter(String key, double defaultValue) {
+        if (this.mode != Mode.INITIALIZE) return;
         parameters.put(key, defaultValue);
     }
 
-    void addParameter(String key) {
+    public void addParameter(String key) {
+        if (this.mode != Mode.INITIALIZE) return;
         parameters.put(key, 0.0);
     }
 
-    Double getParameter(String key) {
+    public Double getParameter(String key) {
         return parameters.get(key);
     }
 
-    void listen(int port) {
+    private void listen(int port) {
+        this.mode = Mode.LISTEN;
         try {
             this.serverSocket = new ServerSocket(port);
 
-            Socket client = this.serverSocket.accept();
-
-
-            DataInputStream d = new DataInputStream(client.getInputStream());
-            String str = d.readUTF().replaceAll("[\\r\\n\\s]", "");
-            String[] split = str.split(":");
-            parameters.put(split[0], Double.parseDouble(split[1]));
-            client.close();
+            while (true) {
+                Socket client = this.serverSocket.accept();
+                DataInputStream d = new DataInputStream(client.getInputStream());
+                String str = d.readUTF().replaceAll("[\\r\\n\\s]", "");
+                String[] split = str.split(":");
+                parameters.put(split[0], Double.parseDouble(split[1]));
+                client.close();
+            }
         } catch (IOException err) {
 
         }
