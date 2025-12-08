@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class DriveController {
 
-    PIDController drivingPID = new PIDController(1.0, 0.1, 0.3); // meh pid
+    PIDController drivingPID;// = new PIDController(1.0, 0.1, 0.3); // meh pid
 
     DcMotor frontLeftDrive;
     DcMotor frontRightDrive;
@@ -21,7 +21,8 @@ public class DriveController {
 
     Orientation angles;
 
-    DriveController(Rev9AxisImu imu, DcMotor frontRightDrive, DcMotor frontLeftDrive, DcMotor backLeftDrive, DcMotor backRightDrive) {
+    DriveController(Rev9AxisImu imu, DcMotor frontRightDrive, DcMotor frontLeftDrive, DcMotor backLeftDrive, DcMotor backRightDrive, PIDController pid) {
+        this.drivingPID = pid; // meh pid
         this.imu = imu;
         this.frontRightDrive = frontRightDrive;
         this.frontLeftDrive = frontLeftDrive;

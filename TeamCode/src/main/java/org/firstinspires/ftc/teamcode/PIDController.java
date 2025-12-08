@@ -22,6 +22,12 @@ public class PIDController {
         this.target = 0;
     }
 
+    void setCoefs(double Kp, double Ki, double Kd) {
+        this.Kp = Kp;
+        this.Ki = Ki;
+        this.Kd = Kd;
+    }
+
     void setTarget(double target) {
         this.target = target;
     }

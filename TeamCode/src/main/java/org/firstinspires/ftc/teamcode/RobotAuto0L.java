@@ -81,6 +81,8 @@ public class RobotAuto0L extends LinearOpMode {
 
     DriveController driveController;
 
+    WebInterface webInterface;
+
     int state = 3; // set to 3 to start driving immediately
     double stateStartTime = 0;
 
@@ -99,6 +101,14 @@ public class RobotAuto0L extends LinearOpMode {
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
+
+        webInterface = new WebInterface();
+        // TODO: Make this non blocking so it doesn't just wait here until it gets a connection
+        webInterface.listen(8885);
+
+        webInterface.addParameter("Kp_drive", 1.0);
+        webInterface.addParameter("Ki_drive", 0.1);
+        webInterface.addParameter("Kd_drive", 0.3);
 
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
@@ -127,10 +137,10 @@ public class RobotAuto0L extends LinearOpMode {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive);
+        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(1.0, 0.1, 0.3));
         driveController.init();
 
-
+        updateDrivingPIDCoefs();
 
 
         waitForStart();
@@ -141,6 +151,14 @@ public class RobotAuto0L extends LinearOpMode {
         while (opModeIsActive()) {
             loop2();
         }
+    }
+
+    private void updateDrivingPIDCoefs() {
+        driveController.drivingPID.setCoefs(
+                webInterface.getParameter("Kp_drive"),
+                webInterface.getParameter("Ki_drive"),
+                webInterface.getParameter("Kd_drive")
+        );
     }
 
     private double avg(double a, double b) {
@@ -177,6 +195,8 @@ public class RobotAuto0L extends LinearOpMode {
         telemetry.addData("backLeftDrive Current", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
         telemetry.addData("backRightDrive Current", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
 
+        // update PID coefs from webInterface
+        updateDrivingPIDCoefs();
 
         if (state == 0) {
             // spin up shooter
