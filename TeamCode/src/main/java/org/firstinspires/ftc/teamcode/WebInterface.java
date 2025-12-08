@@ -116,12 +116,16 @@ public class WebInterface implements Runnable {
 
     private String indexHTML() {
         String sliders = "";
+        String sliderArray = "[";
         for (Map.Entry<String, Double> entry : parameters.entrySet()) {
-            sliders += String.format("<label>%s:</label><input type=\"slider\" value=\"%d\" /><br/>", entry.getKey(), entry.getValue());
+            sliders += String.format("<label>%s:</label><input id=\"%s\" type=\"slider\" value=\"%d\" /><br/>", entry.getKey(), entry.getKey(), entry.getValue());
+            sliderArray += entry.getKey() + ",";
         }
+
+        String js = sliderArray + "].map(key=>document.getElementById(key).addEventListener('update',(ev)=>{fetch('/setValue?'+ev.target.id+':'+ev.target.value)}))";
 
         return "<!DOCTYPE html><html lang=\"en\"><head><title>FTC Web Interface</title></head><body>\n"
                + sliders
-               +"</body></html>";
+               +"<script>" + js + "</script></body></html>";
     }
 }
