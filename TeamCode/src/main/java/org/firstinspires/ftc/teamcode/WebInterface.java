@@ -99,17 +99,13 @@ public class WebInterface implements Runnable {
         }
 
         String[] lines = linesar.toArray(new String[0]);
-
-        System.out.println("parsed 1");
-
+        
         String requestLine = lines[0];
 
         System.out.print("Req: ");
         System.out.println(requestLine);
         Pattern pattern = Pattern.compile("([A-Z]+) ([^\\s\\r\\n]+) ([^\\s\\r\\n]+).+");
         Matcher matched = pattern.matcher(requestLine);
-
-        System.out.println("parsed 2");
 
         if (!matched.matches()) {
             System.out.println("Parsing failed, no match.");
@@ -126,15 +122,10 @@ public class WebInterface implements Runnable {
         String route = matched.group(2);
         String protocol = matched.group(3);
 
-        System.out.println("parsed 3");
-
 //        String[] headers = Arrays.copyOfRange(lines, 1, lines.length);
         String[] headers = {}; // temporarily disabled because it was crashing here I think
-        System.out.println("parsed 4");
 
         String response = handleRoute(route, method, protocol, headers);
-
-        System.out.println("parsed 5");
 
         DataOutputStream o = new DataOutputStream(client.getOutputStream());
         o.write(response.getBytes(StandardCharsets.UTF_8));
@@ -150,11 +141,8 @@ public class WebInterface implements Runnable {
         String search = bla.length > 1 ? bla[1] : "";
 
         if (method.equals("GET")) {
-            System.out.print("route: ");
-            System.out.println(route);
             switch (justRoute) {
                 case "/":
-                    System.out.println("page / requested");
                     return "HTTP/1.1 200 OK\r\n\r\n" + indexHTML();
                 case "/setValue":
                     String[] split = search.split(":");
