@@ -103,6 +103,9 @@ public class WebInterface implements Runnable {
         System.out.println("parsed 1");
 
         String requestLine = lines[0];
+
+        System.out.print("Req: ");
+        System.out.println(requestLine);
         Pattern pattern = Pattern.compile("([A-Z]+) ([^\\s\\r\\n]+) ([^\\s\\r\\n]+).+");
         Matcher matched = pattern.matcher(requestLine);
 
@@ -147,6 +150,8 @@ public class WebInterface implements Runnable {
         String search = bla.length > 1 ? bla[1] : "";
 
         if (method.equals("GET")) {
+            System.out.print("route: ");
+            System.out.println(route);
             switch (justRoute) {
                 case "/":
                     System.out.println("page / requested");
@@ -154,6 +159,10 @@ public class WebInterface implements Runnable {
                 case "/setValue":
                     String[] split = search.split(":");
                     parameters.put(split[0], Double.parseDouble(split[1]));
+                    System.out.print("Set parameter ");
+                    System.out.print(split[0]);
+                    System.out.print(" to ");
+                    System.out.println(Double.parseDouble(split[1]));
                     return "HTTP/1.1 200 OK\r\n\r\n";
                 default:
                     return "HTTP/1.1 404 Not Found\r\n\r\n";
@@ -170,11 +179,11 @@ public class WebInterface implements Runnable {
         for (Map.Entry<String, Double> entry : parameters.entrySet()) {
             double value = entry.getValue();
             String key = entry.getKey();
-            sliders += String.format("<label>%s:</label><input id=\"%s\" type=\"slider\" value=\"%f\" /><br/>", key, key, value);
-            sliderArray += key + ",";
+            sliders += String.format("<label>%s:</label><input id=\"%s\" type=\"range\" min=\"0.0\" max=\"2.0\" step=\"0.01\" value=\"%f\" /><label id=\"%s_l\">%f</label><br/>", key, key, value, key, value);
+            sliderArray += "\"" + key + "\",";
         }
 
-        String js = sliderArray + "].map(key=>document.getElementById(key).addEventListener('input',(ev)=>{fetch('/setValue?'+ev.target.id+':'+ev.target.value)}))";
+        String js = sliderArray + "].forEach(key=>document.getElementById(key).addEventListener('input',(ev)=>{document.getElementById(key+'_l').innerText=ev.target.value;fetch('/setValue?'+ev.target.id+':'+ev.target.value)}))";
 
         return "<!DOCTYPE html><html lang=\"en\"><head><title>FTC Web Interface</title></head><body>\n"
                + sliders
