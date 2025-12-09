@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class WebTelemetryStreamer implements Runnable {
 
@@ -16,6 +17,8 @@ public class WebTelemetryStreamer implements Runnable {
 
     DataOutputStream currentClientOut;
 
+    ConcurrentLinkedQueue<String> messageQueue;
+
     int port = 8082;
 
 
@@ -23,7 +26,7 @@ public class WebTelemetryStreamer implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.print("Web telemetry streamer listening on port");
+            System.out.print("Web telemetry streamer listening on port ");
             System.out.println(this.port);
             listen(this.port);
         } catch (IOException e) {
@@ -34,6 +37,7 @@ public class WebTelemetryStreamer implements Runnable {
 
     WebTelemetryStreamer(int port) {
         this.port = port;
+        this.messageQueue = new ConcurrentLinkedQueue<>();
     }
 
     private void waitForClient() throws IOException {
@@ -54,7 +58,7 @@ public class WebTelemetryStreamer implements Runnable {
         currentClientOut.flush();
 
 
-        System.out.print("Web telemetry streamer: Client connected");
+        System.out.println("Web telemetry streamer: Client connected");
     }
 
     public void stop() throws IOException {
@@ -66,10 +70,20 @@ public class WebTelemetryStreamer implements Runnable {
 
         while (true) {
             waitForClient();
-            // bad
+            messageQueue.clear();
+
             while (currentClient.isConnected()) {
                 try {
-                    Thread.sleep(10);
+                    String message = messageQueue.poll();
+                    if (message != null) {
+                        try {
+                            this.currentClientOut.write(message.getBytes(StandardCharsets.UTF_8));
+                            // this.currentClientOut.flush();
+                        } catch (IOException e) {
+                            // nothing
+                        }
+                    }
+                    Thread.sleep(3); // bad, use blocking queue instead
                 } catch (InterruptedException e) {
 
                 }
@@ -78,15 +92,9 @@ public class WebTelemetryStreamer implements Runnable {
     }
 
     public void sendData(String key, double value) {
-        try {
-            if (this.currentClient != null && this.currentClient.isConnected() && !this.currentClient.isOutputShutdown()) {
-                this.currentClientOut.write(("event: data\r\n" + String.format("data: {\"%s\": %f}\r\n", key, value) + "\r\n").getBytes(StandardCharsets.UTF_8));
-//                this.currentClientOut.flush();
-            }
-        } catch (IOException e) {
-            System.out.println("sendData failed:");
-            System.out.println(e.getMessage());
-        }
+//        if (this.currentClient != null && this.currentClient.isConnected() && !this.currentClient.isOutputShutdown()) {
+            this.messageQueue.add(("event: data\r\n" + String.format("data: {\"%s\": %f}\r\n", key, value) + "\r\n"));
+//        }
     }
 
 }
