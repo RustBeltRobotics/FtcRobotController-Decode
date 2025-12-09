@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 //import com.qualcomm.robotcore.util.WebServer;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOError;
@@ -13,6 +14,7 @@ import java.nio.channels.ServerSocketChannel;
 
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -83,10 +85,20 @@ public class WebInterface implements Runnable {
 
     private void handleConnection(Socket client) throws IOException {
         System.out.println("New connection");
-        InputStreamReader d = new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8);
+        BufferedReader d = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
 //.readUTF(); // oops this is modified utf-8 apparently
-        String request = d.toString();
-        String[] lines = request.split("(\r\n)|\n");
+        // oops this was not reading all lines (it just saved all lines that have been sent so far, 0 in my testing, as it's called almost instantly after the connection is started)
+//        String request = d.toString();
+//        String[] lines = request.split("(\r\n)|\n");
+
+        // read all lines:
+        ArrayList<String> linesar = new ArrayList<>();
+        String line;
+        while ((line = d.readLine()) != null && !line.isEmpty()) {
+            linesar.add(line);
+        }
+
+        String[] lines = linesar.toArray(new String[0]);
 
         System.out.println("parsed 1");
 
@@ -113,10 +125,13 @@ public class WebInterface implements Runnable {
 
         System.out.println("parsed 3");
 
-        String[] headers = Arrays.copyOfRange(lines, 1, lines.length);
+//        String[] headers = Arrays.copyOfRange(lines, 1, lines.length);
+        String[] headers = {}; // temporarily disabled because it was crashing here I think
+        System.out.println("parsed 4");
+
         String response = handleRoute(route, method, protocol, headers);
 
-        System.out.println("parsed 4");
+        System.out.println("parsed 5");
 
         DataOutputStream o = new DataOutputStream(client.getOutputStream());
         o.write(response.getBytes(StandardCharsets.UTF_8));
@@ -127,9 +142,9 @@ public class WebInterface implements Runnable {
     }
 
     private String handleRoute(String route, String method, String protocol, String[] headers) {
-        String[] bla = route.split("\\?", 1);
+        String[] bla = route.split("\\?", 2);
         String justRoute = bla[0];
-        String search = bla[1];
+        String search = bla.length > 1 ? bla[1] : "";
 
         if (method.equals("GET")) {
             switch (justRoute) {
@@ -153,11 +168,13 @@ public class WebInterface implements Runnable {
         String sliders = "";
         String sliderArray = "[";
         for (Map.Entry<String, Double> entry : parameters.entrySet()) {
-            sliders += String.format("<label>%s:</label><input id=\"%s\" type=\"slider\" value=\"%d\" /><br/>", entry.getKey(), entry.getKey(), entry.getValue());
-            sliderArray += entry.getKey() + ",";
+            double value = entry.getValue();
+            String key = entry.getKey();
+            sliders += String.format("<label>%s:</label><input id=\"%s\" type=\"slider\" value=\"%f\" /><br/>", key, key, value);
+            sliderArray += key + ",";
         }
 
-        String js = sliderArray + "].map(key=>document.getElementById(key).addEventListener('update',(ev)=>{fetch('/setValue?'+ev.target.id+':'+ev.target.value)}))";
+        String js = sliderArray + "].map(key=>document.getElementById(key).addEventListener('input',(ev)=>{fetch('/setValue?'+ev.target.id+':'+ev.target.value)}))";
 
         return "<!DOCTYPE html><html lang=\"en\"><head><title>FTC Web Interface</title></head><body>\n"
                + sliders
