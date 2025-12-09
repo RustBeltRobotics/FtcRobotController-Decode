@@ -99,7 +99,7 @@ public class WebInterface implements Runnable {
         }
 
         String[] lines = linesar.toArray(new String[0]);
-        
+
         String requestLine = lines[0];
 
         System.out.print("Req: ");
@@ -114,7 +114,7 @@ public class WebInterface implements Runnable {
             o.write(response.getBytes(StandardCharsets.UTF_8));
             o.flush();
 
-            System.out.println("sent failiure response");
+            System.out.println("sent failure response");
             return;
         }
 
@@ -171,10 +171,14 @@ public class WebInterface implements Runnable {
             sliderArray += "\"" + key + "\",";
         }
 
-        String js = sliderArray + "].forEach(key=>document.getElementById(key).addEventListener('input',(ev)=>{document.getElementById(key+'_l').innerText=ev.target.value;fetch('/setValue?'+ev.target.id+':'+ev.target.value)}))";
+        String js = sliderArray + "].forEach( key => document.getElementById(key).addEventListener('input', (ev) => {  document.getElementById(key+'_l').innerText=ev.target.value;  fetch('/setValue?'+ev.target.id+':'+ev.target.value)  }));" +
+                "const evs = new EventSource(\"http://\" + document.location.hostname + ':8886'); evs.addEventListener('data', (ev) => {applyUpdate(JSON.parse(ev.data))});"+
+                "const canvas = document.getElementById(\"canvas\");"+
+                "const ctx = canvas.getContext(\"2d\");\n\nconst series = {};\nconst seriesColors = {};\n\nfunction randomColor() {\n    return `hsl(${Math.floor(Math.random() * 360)}, 80%, 50%)`;\n}\n\nfunction applyUpdate(updateObj) {\n    const keys = Object.keys(updateObj);\n    if (keys.length === 0) return;\n\n    const key = keys[0];\n    const value = updateObj[key];\n\n    if (!series[key]) series[key] = [];\n    if (!seriesColors[key]) seriesColors[key] = randomColor();\n\n    series[key].push({ x: Date.now()/10, y: value });\n\n    drawGraph();\n}\n\nfunction drawGraph() {\n    ctx.clearRect(0, 0, canvas.width, canvas.height);\n\n    for (const key in series) {\n        const points = series[key];\n        const color = seriesColors[key];\n\n        ctx.beginPath();\n        ctx.strokeStyle = color;\n\n        for (let i = 0; i < points.length; i++) {\n            const p = points[i];\n            const canvasY = canvas.height - p.y;\n            if (i === 0) {\n                ctx.moveTo(canvas.width-p.x, canvasY);\n            } else {\n                ctx.lineTo(canvas.width-p.x, canvasY);\n            }\n        }\n\n        ctx.stroke();\n    }\n}\n";
 
         return "<!DOCTYPE html><html lang=\"en\"><head><title>FTC Web Interface</title></head><body>\n"
                + sliders
+               +"<canvas id=\"canvas\" width=\"800\" height=\"450\"></canvas>"
                +"<script>" + js + "</script></body></html>";
     }
 }

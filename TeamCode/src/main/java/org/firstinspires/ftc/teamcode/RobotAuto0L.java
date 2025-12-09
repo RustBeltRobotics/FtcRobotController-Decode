@@ -42,6 +42,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+import java.io.IOException;
 import java.util.Locale;
 
 /*
@@ -82,6 +83,7 @@ public class RobotAuto0L extends LinearOpMode {
     DriveController driveController;
 
     WebInterface webInterface;
+    WebTelemetryStreamer webTelemetryStreamer;
 
     int state = 3; // set to 3 to start driving immediately
     double stateStartTime = 0;
@@ -110,6 +112,10 @@ public class RobotAuto0L extends LinearOpMode {
 
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
+
+        webTelemetryStreamer = new WebTelemetryStreamer(8886);
+        Thread webTelemetryStreamerThread = new Thread(webTelemetryStreamer);
+        webTelemetryStreamerThread.start(); // start server
 
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
@@ -152,6 +158,14 @@ public class RobotAuto0L extends LinearOpMode {
         while (opModeIsActive()) {
             loop2();
         }
+
+        try {
+            webInterface.stop();
+        } catch (IOException e) {}
+
+        try {
+            webTelemetryStreamer.stop();
+        } catch (IOException e) {}
     }
 
     private void updateDrivingPIDCoefs() {
@@ -183,6 +197,11 @@ public class RobotAuto0L extends LinearOpMode {
         telemetry.addData("heading", formatAngle(angles.angleUnit, angles.firstAngle));
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
+
+        webTelemetryStreamer.sendData("heading", angles.firstAngle);
+        webTelemetryStreamer.sendData("roll", angles.secondAngle);
+        webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
+
 
         // This does not work!
 //        telemetry.addData("frontRightDrive Current", frontRightDrive.getCurrent(CurrentUnit.MILLIAMPS));
