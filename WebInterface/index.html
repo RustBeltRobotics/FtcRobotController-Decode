@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>FTC Web Interface</title>
+    </head>
+    <body>
+        <div id="sliders"></div>
+        <canvas id="canvas" width="800" height="450"></canvas>"
+
+        <script>
+            const slidersElement = document.getElementById("sliders");
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const HOST = '192.168.43.1:8885';
+
+            fetch("http://" + HOST)
+                .then((x) => x.json)
+                .then((sliders) =>
+                    sliders.forEach(([key, value]) => {
+                        const container = document.createElement("div");
+                        container.innerHTML = `<label>${key}:</label><input id="${key}" type="range" min="0.0" max="2.0" step="0.01" value="${value}" /><label id="${key}_l">${value}</label><br/>`;
+                        sliders.appendChild(container);
+
+                        document
+                            .getElementById(key) // yuck
+                            .addEventListener("input", (ev) => {
+                                document.getElementById(key + "_l").innerText =
+                                    ev.target.value;
+                                fetch(
+                                    "/setValue?" +
+                                        ev.target.id +
+                                        ":" +
+                                        ev.target.value
+                                );
+                            });
+                    })
+                );
+
+            const evs = new EventSource(
+                "http://" + HOST
+            );
+            evs.addEventListener("data", (ev) => {
+                applyUpdate(JSON.parse(ev.data));
+            });
+
+            const series = {};
+            const seriesColors = {};
+            const startTime = Date.now();
+
+            function randomColor() {
+                return `hsl(${Math.floor(Math.random() * 360)}, 80%, 50%)`;
+            }
+
+            function applyUpdate(updateObj) {
+                const keys = Object.keys(updateObj);
+                if (keys.length === 0) return;
+
+                const key = keys[0];
+                const value = updateObj[key];
+
+                if (!series[key]) series[key] = [];
+                if (!seriesColors[key]) seriesColors[key] = randomColor();
+
+                series[key].push({ x: Date.now(), y: value });
+
+                drawGraph();
+            }
+
+            function drawGraph() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (const key in series) {
+                    const points = series[key];
+                    const color = seriesColors[key];
+
+                    ctx.beginPath();
+                    ctx.strokeStyle = color;
+
+                    for (let i = 0; i < points.length; i++) {
+                        const p = points[i];
+                        const canvasY = canvas.height - p.y;
+                        const xp = p.x - startTime - canvas.width / 2;
+                        if (i === 0) {
+                            ctx.moveTo(xp, canvasY);
+                        } else {
+                            ctx.lineTo(xp, canvasY);
+                        }
+                    }
+
+                    ctx.stroke();
+                }
+            }
+        </script>
+    </body>
+</html>

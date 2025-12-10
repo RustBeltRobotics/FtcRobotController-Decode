@@ -144,6 +144,10 @@ public class WebInterface implements Runnable {
             switch (justRoute) {
                 case "/":
                     return "HTTP/1.1 200 OK\r\n\r\n" + indexHTML();
+                case "/test":
+                    return "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\nSERVER OK";
+                case "/getSliders":
+                    return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n" + getSliderJSON();
                 case "/setValue":
                     String[] split = search.split(":");
                     parameters.put(split[0], Double.parseDouble(split[1]));
@@ -158,6 +162,17 @@ public class WebInterface implements Runnable {
         }
 
         return "HTTP/1.1 400 Bad Request\r\n\r\n";
+    }
+
+    private String getSliderJSON() {
+        String sliderArray = "[";
+        for (Map.Entry<String, Double> entry : parameters.entrySet()) {
+            double value = entry.getValue();
+            String key = entry.getKey();
+            sliderArray += "[\"" + key + "\", \"" + value + "\"],";
+        }
+
+        return sliderArray + "]";
     }
 
 
