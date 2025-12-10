@@ -12,9 +12,11 @@
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
 
-            const HOST = '192.168.43.1:8885';
+            const HOST = '192.168.43.1';
+            const PORT1 = 8885;
+            const PORT2 = 8886;
 
-            fetch("http://" + HOST)
+            fetch("http://" + HOST + ':' + PORT1)
                 .then((x) => x.json)
                 .then((sliders) =>
                     sliders.forEach(([key, value]) => {
@@ -38,7 +40,7 @@
                 );
 
             const evs = new EventSource(
-                "http://" + HOST
+                "http://" + HOST + ':' + PORT2
             );
             evs.addEventListener("data", (ev) => {
                 applyUpdate(JSON.parse(ev.data));
