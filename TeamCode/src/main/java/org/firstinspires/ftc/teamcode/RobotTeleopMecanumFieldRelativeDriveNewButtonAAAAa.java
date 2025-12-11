@@ -48,6 +48,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+import java.io.IOException;
 import java.util.Locale;
 
 /*
@@ -173,9 +174,17 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         waitForStart();
 
 
-        while (true) {
+        while (opModeIsActive()) {
             loop2();
         }
+
+//        try {
+//            webInterface.stop();
+//        } catch (IOException e) {}
+
+        try {
+            webTelemetryStreamer.stop();
+        } catch (IOException e) {}
     }
 
     private double avg(double a, double b) {
