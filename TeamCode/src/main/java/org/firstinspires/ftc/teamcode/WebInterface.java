@@ -145,9 +145,9 @@ public class WebInterface implements Runnable {
                 case "/":
                     return "HTTP/1.1 200 OK\r\n\r\n" + indexHTML();
                 case "/test":
-                    return "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\nSERVER OK";
+                    return "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\n\r\nSERVER OK";
                 case "/getSliders":
-                    return "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n" + getSliderJSON();
+                    return "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: text/plain\r\n\r\n" + getSliderJSON();
                 case "/setValue":
                     String[] split = search.split(":");
                     parameters.put(split[0], Double.parseDouble(split[1]));
@@ -155,7 +155,7 @@ public class WebInterface implements Runnable {
                     System.out.print(split[0]);
                     System.out.print(" to ");
                     System.out.println(Double.parseDouble(split[1]));
-                    return "HTTP/1.1 200 OK\r\n\r\n";
+                    return "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n\r\n";
                 default:
                     return "HTTP/1.1 404 Not Found\r\n\r\n";
             }
