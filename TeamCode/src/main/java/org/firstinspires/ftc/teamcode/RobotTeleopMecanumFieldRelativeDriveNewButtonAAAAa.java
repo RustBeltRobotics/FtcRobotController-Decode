@@ -185,10 +185,11 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         telemetry.addLine("The left joystick sets the robot direction");
         telemetry.addLine("Moving the right joystick left and right turns the robot");
 
-        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.YZX, AngleUnit.DEGREES);
 
         telemetry.addData("connection", imu.getConnectionInfo());
 
+        // wrong labels
         telemetry.addData("heading", formatAngle(angles.angleUnit, angles.firstAngle));
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
@@ -211,11 +212,11 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         if (!gamepad1.right_bumper) {
-            driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+            driveFieldRelative(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
 //            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
             telemetry.addLine("RIGHT BUMPER");
-            drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+            drive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
 //        if (gamepad1.left_bumper) {
