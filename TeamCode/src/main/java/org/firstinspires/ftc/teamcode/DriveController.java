@@ -71,7 +71,7 @@ public class DriveController {
         // TODO: Continuousalize this, or use quaternion maybe, because I think wrapping around is causing the issue that only appears half the time
         angles = this.imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        double currentRotation = AngleUnit.normalizeRadians(angles.firstAngle * (3.141592653589/180));
+        double currentRotation = 3.14159 + AngleUnit.normalizeRadians(angles.firstAngle * (3.141592653589/180));
 
         ;//AngleUnit.normalizeRadians(theta -
         //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
