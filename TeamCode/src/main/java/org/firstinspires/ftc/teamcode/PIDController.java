@@ -14,6 +14,8 @@ public class PIDController {
 
     double target = 0.0;
 
+    double output = 0.0;
+
     PIDController(double Kp, double Ki, double Kd) {
         this.Kp = Kp;
         this.Ki = Ki;
@@ -41,7 +43,7 @@ public class PIDController {
 
         double derivative = (error - previousError) / sampleTime;
 
-        double output = Kp * proportional + Ki * integral + Kd * derivative;
+        this.output = Kp * proportional + Ki * integral + Kd * derivative;
 
         previousError = error;
 

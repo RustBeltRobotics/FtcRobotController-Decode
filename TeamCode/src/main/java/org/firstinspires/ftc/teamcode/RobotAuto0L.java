@@ -202,6 +202,8 @@ public class RobotAuto0L extends LinearOpMode {
         webTelemetryStreamer.sendData("roll", angles.secondAngle);
         webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
+        webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
+
 
         // This does not work!
 //        telemetry.addData("frontRightDrive Current", frontRightDrive.getCurrent(CurrentUnit.MILLIAMPS));
