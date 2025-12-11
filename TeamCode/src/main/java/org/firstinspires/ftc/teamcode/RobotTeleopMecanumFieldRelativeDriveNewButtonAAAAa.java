@@ -28,6 +28,10 @@
  */
 package org.firstinspires.ftc.teamcode;
 
+import android.content.Context;
+import android.media.SoundPool;
+
+import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.hardware.rev.Rev9AxisImu;
 import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -98,6 +102,10 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
+
+//        SoundPlayer soundPlayer = new SoundPlayer(1, 4096);
+//        soundPlayer.play()
+//        SoundPlayer.getInstance().startPlaying();
 
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
@@ -203,11 +211,11 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         if (!gamepad1.right_bumper) {
-            telemetry.addLine("RIGHT BUMPER");
-            driveFieldRelative(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+            driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 //            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
-            drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+            telemetry.addLine("RIGHT BUMPER");
+            drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
 //        if (gamepad1.left_bumper) {
