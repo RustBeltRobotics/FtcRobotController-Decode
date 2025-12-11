@@ -214,9 +214,9 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         webTelemetryStreamer.sendData("roll", angles.secondAngle);
         webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
-        webTelemetryStreamer.sendData("x", gamepad1.left_stick_x);
-        webTelemetryStreamer.sendData("y", gamepad1.left_stick_y);
-        webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x);
+        webTelemetryStreamer.sendData("x", gamepad1.left_stick_x * 100.0);
+        webTelemetryStreamer.sendData("y", gamepad1.left_stick_y * 100.0);
+        webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x * 100.0);
 
 
         double invert_all_emergency = ((Math.min((gamepad1.left_bumper ? 1 : 0) + (gamepad2.left_bumper ? 1 : 0), 1.0)) * 2 - 1);
