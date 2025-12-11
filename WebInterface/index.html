@@ -1,98 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>FTC Web Interface</title>
-    </head>
-    <body>
-        <div id="sliders"></div>
-        <canvas id="canvas" width="800" height="450"></canvas>"
+<head>
+    <title>FTC Web Interface</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        #canvas { background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .slider-container { margin-bottom: 5px; }
+        label { display: inline-block; width: 150px; }
+    </style>
+</head>
+<body>
+    <div id="sliders"></div>
+    <br/>
+    <canvas id="canvas" width="800" height="450"></canvas>
 
-        <script>
-            const slidersElement = document.getElementById("sliders");
-            const canvas = document.getElementById("canvas");
-            const ctx = canvas.getContext("2d");
+    <script>
+        const slidersElement = document.getElementById("sliders");
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
 
-            const HOST = '192.168.43.1';
-            const PORT1 = 8885;
-            const PORT2 = 8886;
+        // Configuration
+        const HOST = '192.168.43.1';
+        const PORT1 = 8885;
+        const PORT2 = 8886;
+        const MAX_DATA_POINTS = 20000;
+        
+        // Visual Settings
+        const PADDING = { top: 20, right: 20, bottom: 30, left: 50 }; // Space for labels
+        const LINE_WIDTH = 3;
+        // A nice palette of distinct colors
+        const PALETTE = ['#e6194b', '#3cb44b', '#0082c8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#d2f53c', '#fabebe', '#008080'];
 
-            fetch("http://" + HOST + ':' + PORT1)
-                .then((x) => x.json)
-                .then((sliders) =>
-                    sliders.forEach(([key, value]) => {
-                        const container = document.createElement("div");
-                        container.innerHTML = `<label>${key}:</label><input id="${key}" type="range" min="0.0" max="2.0" step="0.01" value="${value}" /><label id="${key}_l">${value}</label><br/>`;
-                        sliders.appendChild(container);
+        // --- Slider Logic ---
+        fetch("http://" + HOST + ':' + PORT1)
+            .then((x) => x.json()) // FIXED: added ()
+            .then((sliders) =>
+                sliders.forEach(([key, value]) => {
+                    const container = document.createElement("div");
+                    container.className = "slider-container";
+                    container.innerHTML = `<label>${key}:</label><input id="${key}" type="range" min="0.0" max="2.0" step="0.01" value="${value}" /><label id="${key}_l">${value}</label>`;
+                    slidersElement.appendChild(container);
 
-                        document
-                            .getElementById(key) // yuck
-                            .addEventListener("input", (ev) => {
-                                document.getElementById(key + "_l").innerText =
-                                    ev.target.value;
-                                fetch(
-                                    "/setValue?" +
-                                        ev.target.id +
-                                        ":" +
-                                        ev.target.value
-                                );
-                            });
-                    })
-                );
+                    document.getElementById(key).addEventListener("input", (ev) => {
+                        document.getElementById(key + "_l").innerText = ev.target.value;
+                        // Note: Ensure your server handles this GET format
+                        fetch("/setValue?" + ev.target.id + ":" + ev.target.value);
+                    });
+                })
+            ).catch(e => console.log("Slider fetch failed (offline mode?):", e));
 
-            const evs = new EventSource(
-                "http://" + HOST + ':' + PORT2
-            );
-            evs.addEventListener("data", (ev) => {
-                applyUpdate(JSON.parse(ev.data));
-            });
+        // --- Graph Logic ---
+        const evs = new EventSource("http://" + HOST + ':' + PORT2);
+        evs.addEventListener("data", (ev) => {
+            applyUpdate(JSON.parse(ev.data));
+        });
 
-            const series = {};
-            const seriesColors = {};
-            const startTime = Date.now();
+        // If offline, uncomment this to test random data:
+        // setInterval(() => applyUpdate({ "Motor 1": Math.sin(Date.now()/500) * 10, "Servo": Math.cos(Date.now()/1000) * 5 }), 50);
 
-            function randomColor() {
-                return `hsl(${Math.floor(Math.random() * 360)}, 80%, 50%)`;
-            }
+        const series = {};
+        // Map keys to specific colors to keep them consistent
+        const keyColorMap = {}; 
+        let colorIndex = 0;
 
-            function applyUpdate(updateObj) {
-                const keys = Object.keys(updateObj);
-                if (keys.length === 0) return;
+        function applyUpdate(updateObj) {
+            const keys = Object.keys(updateObj);
+            if (keys.length === 0) return;
 
-                const key = keys[0];
+            const now = Date.now();
+
+            keys.forEach(key => {
                 const value = updateObj[key];
 
-                if (!series[key]) series[key] = [];
-                if (!seriesColors[key]) seriesColors[key] = randomColor();
+                if (!series[key]) {
+                    series[key] = [];
+                    // Assign a color from the palette
+                    keyColorMap[key] = PALETTE[colorIndex % PALETTE.length];
+                    colorIndex++;
+                }
 
-                series[key].push({ x: Date.now(), y: value });
+                series[key].push({ x: now, y: value });
 
-                drawGraph();
-            }
+                // Limit Data Points
+                if (series[key].length > MAX_DATA_POINTS) {
+                    series[key].shift(); // Remove oldest
+                }
+            });
 
-            function drawGraph() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGraph();
+        }
 
-                for (const key in series) {
-                    const points = series[key];
-                    const color = seriesColors[key];
+        function drawGraph() {
+            // 1. Clear Screen
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                    ctx.beginPath();
-                    ctx.strokeStyle = color;
+            // 2. Find Min/Max for Auto-scaling
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity;
+            let hasData = false;
 
-                    for (let i = 0; i < points.length; i++) {
-                        const p = points[i];
-                        const canvasY = canvas.height - p.y;
-                        const xp = p.x - startTime - canvas.width / 2;
-                        if (i === 0) {
-                            ctx.moveTo(xp, canvasY);
-                        } else {
-                            ctx.lineTo(xp, canvasY);
-                        }
-                    }
+            for (const key in series) {
+                const points = series[key];
+                if (points.length === 0) continue;
+                hasData = true;
+                
+                // Fast check of first and last for time (since time is sorted)
+                if (points[0].x < minX) minX = points[0].x;
+                if (points[points.length-1].x > maxX) maxX = points[points.length-1].x;
 
-                    ctx.stroke();
+                // Check Y values
+                for (let p of points) {
+                    if (p.y < minY) minY = p.y;
+                    if (p.y > maxY) maxY = p.y;
                 }
             }
-        </script>
-    </body>
+
+            if (!hasData) return;
+
+            // Add a tiny buffer to Y range so lines don't touch top/bottom perfectly
+            const yRange = maxY - minY || 1; // avoid divide by zero
+            minY -= yRange * 0.05;
+            maxY += yRange * 0.05;
+
+            // Helper to map Data coordinates to Canvas coordinates
+            const graphW = canvas.width - PADDING.left - PADDING.right;
+            const graphH = canvas.height - PADDING.top - PADDING.bottom;
+
+            const getX = (val) => PADDING.left + ((val - minX) / (maxX - minX)) * graphW;
+            const getY = (val) => PADDING.top + graphH - ((val - minY) / (maxY - minY)) * graphH;
+
+            // 3. Draw Axes and Ticks
+            drawAxes(ctx, minX, maxX, minY, maxY, getX, getY, graphW, graphH);
+
+            // 4. Draw Series
+            ctx.lineWidth = LINE_WIDTH;
+            ctx.lineJoin = 'round';
+
+            for (const key in series) {
+                const points = series[key];
+                const color = keyColorMap[key];
+
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+
+                for (let i = 0; i < points.length; i++) {
+                    const p = points[i];
+                    const cx = getX(p.x);
+                    const cy = getY(p.y);
+
+                    if (i === 0) ctx.moveTo(cx, cy);
+                    else ctx.lineTo(cx, cy);
+                }
+                ctx.stroke();
+            }
+        }
+
+        function drawAxes(ctx, minX, maxX, minY, maxY, mapX, mapY, w, h) {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#e0e0e0"; // Light grey for grid
+            ctx.fillStyle = "#666";       // Text color
+            ctx.font = "10px sans-serif";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+
+            // Y-Axis Ticks (5 horizontal lines)
+            const ySteps = 5;
+            for (let i = 0; i <= ySteps; i++) {
+                const val = minY + (i / ySteps) * (maxY - minY);
+                const yPos = mapY(val);
+                
+                // Grid line
+                ctx.beginPath();
+                ctx.moveTo(PADDING.left, yPos);
+                ctx.lineTo(canvas.width - PADDING.right, yPos);
+                ctx.stroke();
+
+                // Label (formatted to 2 decimals)
+                ctx.fillText(val.toFixed(2), PADDING.left - 5, yPos);
+            }
+
+            // X-Axis Ticks (5 vertical lines)
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            const xSteps = 5;
+            for (let i = 0; i <= xSteps; i++) {
+                const val = minX + (i / xSteps) * (maxX - minX);
+                const xPos = mapX(val);
+
+                // Grid line
+                ctx.beginPath();
+                ctx.moveTo(xPos, PADDING.top);
+                ctx.lineTo(xPos, canvas.height - PADDING.bottom);
+                ctx.stroke();
+
+                // Label (Show seconds relative to start of window)
+                // If you want absolute time, use new Date(val).toLocaleTimeString()
+                const secondsLabel = ((val - minX) / 1000).toFixed(1) + "s";
+                ctx.fillText(secondsLabel, xPos, canvas.height - PADDING.bottom + 5);
+            }
+
+            // Draw solid Axis lines
+            ctx.strokeStyle = "#000";
+            ctx.beginPath();
+            ctx.moveTo(PADDING.left, PADDING.top);
+            ctx.lineTo(PADDING.left, canvas.height - PADDING.bottom); // Y Axis
+            ctx.lineTo(canvas.width - PADDING.right, canvas.height - PADDING.bottom); // X Axis
+            ctx.stroke();
+        }
+    </script>
+</body>
 </html>

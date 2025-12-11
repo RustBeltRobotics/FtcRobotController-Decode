@@ -93,7 +93,7 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
     @Override
     public void runOpMode() {
 
-        Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.FORWARD, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.DOWN));
+        Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
