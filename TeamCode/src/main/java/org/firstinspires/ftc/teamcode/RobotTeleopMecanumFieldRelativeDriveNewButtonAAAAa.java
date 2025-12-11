@@ -86,6 +86,7 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
     Orientation angles;
 
 
+    WebTelemetryStreamer webTelemetryStreamer;
 
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
@@ -102,6 +103,10 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
+
+        webTelemetryStreamer = new WebTelemetryStreamer(8886);
+        Thread webTelemetryStreamerThread = new Thread(webTelemetryStreamer);
+        webTelemetryStreamerThread.start(); // start server
 
 //        SoundPlayer soundPlayer = new SoundPlayer(1, 4096);
 //        soundPlayer.play()
@@ -194,7 +199,14 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
+        webTelemetryStreamer.sendData("heading", angles.firstAngle);
+        webTelemetryStreamer.sendData("roll", angles.secondAngle);
+        webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
+        webTelemetryStreamer.sendData("x", gamepad1.left_stick_x);
+        webTelemetryStreamer.sendData("y", gamepad1.left_stick_y);
+        webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x);
+        
 
         double invert_all_emergency = ((Math.min((gamepad1.left_bumper ? 1 : 0) + (gamepad2.left_bumper ? 1 : 0), 1.0)) * 2 - 1);
 
