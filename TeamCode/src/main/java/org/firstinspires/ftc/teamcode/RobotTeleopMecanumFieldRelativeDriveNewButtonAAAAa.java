@@ -91,6 +91,8 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
+    Toggler aToggler = new Toggler();
+
 
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
@@ -206,7 +208,7 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         webTelemetryStreamer.sendData("x", gamepad1.left_stick_x);
         webTelemetryStreamer.sendData("y", gamepad1.left_stick_y);
         webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x);
-        
+
 
         double invert_all_emergency = ((Math.min((gamepad1.left_bumper ? 1 : 0) + (gamepad2.left_bumper ? 1 : 0), 1.0)) * 2 - 1);
 
@@ -244,9 +246,12 @@ public class RobotTeleopMecanumFieldRelativeDriveNewButtonAAAAa extends LinearOp
         lastGamepadX = gamepad1.x;
 
 
+        aToggler.update(gamepad1.a);
+
+
         shooter.setPower(shooterToggle ? -1.9 : (-invert_all_emergency * (((gamepad1.left_trigger * 1.9 - gamepad1.right_trigger * 1.9) + (gamepad2.left_trigger * 1.9 - gamepad2.right_trigger * 1.9))/2.0)));
 
-        intake.setPower(avg(gamepad2.left_stick_y * 1.9,  invert_all_emergency *   boolToDoubleBecauseItWontCast(gamepad1.a || gamepad1.b || gamepad1.y) * 1.9));
+        intake.setPower(avg(gamepad2.left_stick_y * 1.9,   invert_all_emergency *   boolToDoubleBecauseItWontCast(aToggler.currentState || gamepad1.b || gamepad1.y) * 1.9));
         feeder.setPower(avg(gamepad2.right_stick_y * 1.9,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * 1.9));
         feeder2.setPower(avg(gamepad2.right_stick_x * 1.9, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * 1.9));
         telemetry.update();
