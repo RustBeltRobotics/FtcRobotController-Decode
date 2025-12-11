@@ -232,7 +232,7 @@ public class RobotAuto0L extends LinearOpMode {
         } else if (state == 1) {
             // shoot balls
             telemetry.addLine("Shooting balls...");
-            intake.setPower(-1.9);
+            intake.setPower(1.9);
             feeder.setPower(1.9);
             feeder2.setPower(-1.9);
 
