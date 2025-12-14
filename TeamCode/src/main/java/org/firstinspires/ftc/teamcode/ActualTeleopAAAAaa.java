@@ -66,7 +66,7 @@ import java.util.Locale;
  *
  */
 @TeleOp(name = "Robot: Field Relative Mecanum Drive", group = "Robot")
-public class ActualTeleopAAAAaa extends LinearOpMode {
+public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     // This declares the four motors needed
     DcMotor frontLeftDrive;
     DcMotor frontRightDrive;
