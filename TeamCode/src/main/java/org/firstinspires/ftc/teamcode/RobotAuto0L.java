@@ -153,7 +153,19 @@ public class RobotAuto0L extends LinearOpMode {
         waitForStart();
 
         stateStartTime = getRuntime();
+
+        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        System.out.print("yaw before resetYaw: ");
+        System.out.println(angles.firstAngle);
+
         imu.resetYaw();
+
+        
+        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        System.out.print("yaw after resetYaw: ");
+        System.out.println(angles.firstAngle);
 
         int loopcounter = 0;
         while (opModeIsActive()) {
