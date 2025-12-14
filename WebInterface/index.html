@@ -153,6 +153,57 @@
                 }
                 ctx.stroke();
             }
+
+            // 5. Draw Legend
+            drawLegend();
+        }
+
+        function drawLegend() {
+            const keys = Object.keys(series);
+            if (keys.length === 0) return;
+
+            ctx.save();
+            ctx.font = "12px sans-serif";
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+
+            const boxX = PADDING.left + 15;
+            const boxY = PADDING.top + 10;
+            const lineHeight = 20;
+            const colorBoxSize = 12;
+            const padding = 10;
+
+            // Calculate width needed for the legend box
+            let maxWidth = 0;
+            keys.forEach(key => {
+                const w = ctx.measureText(key).width;
+                if (w > maxWidth) maxWidth = w;
+            });
+
+            const boxWidth = maxWidth + colorBoxSize + 15 + (padding * 2);
+            const boxHeight = (keys.length * lineHeight) + padding;
+
+            // Draw Semi-transparent background
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = 1;
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+
+            // Draw items
+            keys.forEach((key, index) => {
+                const yPos = boxY + padding + (index * lineHeight) + (lineHeight / 2) - 6; 
+                
+                // Color swatch
+                ctx.fillStyle = keyColorMap[key];
+                ctx.fillRect(boxX + padding, yPos - (colorBoxSize/2) + 6, colorBoxSize, colorBoxSize);
+
+                // Text
+                ctx.fillStyle = "#333";
+                ctx.fillText(key, boxX + padding + colorBoxSize + 10, yPos + 6);
+            });
+
+            ctx.restore();
         }
 
         function drawAxes(ctx, minX, maxX, minY, maxY, mapX, mapY, w, h) {
