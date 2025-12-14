@@ -59,7 +59,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@Autonomous(name = "Robot: Field Relative Mecanum Drive", group = "Robot")
+@Autonomous(name = "RobotAuto0L", group = "Robot")
 public class RobotAuto0L extends LinearOpMode {
     // This declares the four motors needed
     DcMotor frontLeftDrive;
@@ -155,8 +155,9 @@ public class RobotAuto0L extends LinearOpMode {
         stateStartTime = getRuntime();
         imu.resetYaw();
 
+        int loopcounter = 0;
         while (opModeIsActive()) {
-            loop2();
+            loop2(loopcounter++);
         }
 
         try {
@@ -184,7 +185,7 @@ public class RobotAuto0L extends LinearOpMode {
         return input ? 1.0 : 0.0;
     }
 
-    public void loop2() {
+    public void loop2(int loopcounter) {
         telemetry.addLine("Press A to reset Yaw");
         telemetry.addLine("Hold left bumper to drive in robot relative");
         telemetry.addLine("The left joystick sets the robot direction");
@@ -198,11 +199,21 @@ public class RobotAuto0L extends LinearOpMode {
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
-        webTelemetryStreamer.sendData("heading", angles.firstAngle);
-        webTelemetryStreamer.sendData("roll", angles.secondAngle);
-        webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
-        webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
+
+        if (loopcounter % 3 == 0) {
+            webTelemetryStreamer.sendData("heading", angles.firstAngle);
+            webTelemetryStreamer.sendData("roll", angles.secondAngle);
+            webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
+
+            webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
+
+            webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+        }
+
 
 
         // This does not work!
