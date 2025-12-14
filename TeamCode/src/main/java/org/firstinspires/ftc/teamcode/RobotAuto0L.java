@@ -267,7 +267,7 @@ public class RobotAuto0L extends LinearOpMode {
         } else if (state == 3) {
             telemetry.addLine("Drive 2...");
             driveController.driveFieldRelative(-0.3, 0, 0);
-            if (getRuntime() - stateStartTime > 3.0) {
+            if (getRuntime() - stateStartTime > 1.0) {
                 state = 4;
                 stateStartTime = getRuntime();
             }

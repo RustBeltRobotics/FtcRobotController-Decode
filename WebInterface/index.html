@@ -50,9 +50,11 @@
             ).catch(e => console.log("Slider fetch failed (offline mode?):", e));
 
         // --- Graph Logic ---
-        const evs = new EventSource("http://" + HOST + ':' + PORT2);
+        const evs = new EventSource("http://" + HOST + ':' + PORT2, {timeout: 400, maxReconnects: 200}); // config not working?
         evs.addEventListener("data", (ev) => {
-            applyUpdate(JSON.parse(ev.data));
+            const m = JSON.parse(ev.data);
+            console.log('data:', m);
+            applyUpdate(m);
         });
 
         // If offline, uncomment this to test random data:
@@ -87,13 +89,35 @@
                 }
             });
 
-            drawGraph();
+
+            render();
         }
 
-        function drawGraph() {
+        setInterval(render, 500);
+
+        function render() {
             // 1. Clear Screen
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // red line if not connected
+            if (evs.readyState != evs.OPEN) {
+                ctx.strokeStyle = "red";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(0, 0, canvas.width, canvas.height)
+            } else {
+                ctx.strokeStyle = "green";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(0, 0, canvas.width, canvas.height)
+            }
+
+
+            drawGraph();
+
+            // 5. Draw Legend
+            drawLegend();
+        }
+
+        function drawGraph() {
             // 2. Find Min/Max for Auto-scaling
             let minX = Infinity, maxX = -Infinity;
             let minY = Infinity, maxY = -Infinity;
@@ -153,9 +177,6 @@
                 }
                 ctx.stroke();
             }
-
-            // 5. Draw Legend
-            drawLegend();
         }
 
         function drawLegend() {
