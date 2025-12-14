@@ -221,7 +221,7 @@
 
                 // Text
                 ctx.fillStyle = "#333";
-                ctx.fillText(key, boxX + padding + colorBoxSize + 10, yPos + 6);
+                ctx.fillText(key + ': ' + String(series[key]?.at(-1)?.y), boxX + padding + colorBoxSize + 10, yPos + 6);
             });
 
             ctx.restore();

@@ -202,12 +202,11 @@ public class RobotAuto0L extends LinearOpMode {
 
 
         if (loopcounter % 3 == 0) {
-            double R2D = 180.0/3.141592653589;
-            // WARNING: Angles are in radians but I am converting to degrees here to make it easier to see on the graph
-            webTelemetryStreamer.sendData("heading", angles.firstAngle * R2D);
-            webTelemetryStreamer.sendData("roll", angles.secondAngle * R2D);
-            webTelemetryStreamer.sendData("pitch", angles.thirdAngle * R2D);
+            webTelemetryStreamer.sendData("heading", angles.firstAngle);
+            webTelemetryStreamer.sendData("roll", angles.secondAngle);
+            webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
+            webTelemetryStreamer.sendData("PIDTarget", driveController.drivingPID.target);
             webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
 
             // 0.01 scale just to make it fit in with the other units (todo: make multiple separate graphs each with one unit)
@@ -269,7 +268,7 @@ public class RobotAuto0L extends LinearOpMode {
         } else if (state == 3) {
             telemetry.addLine("Drive 2...");
             driveController.driveFieldRelative(-0.3, 0, 0);
-            if (getRuntime() - stateStartTime > 1.0) {
+            if (getRuntime() - stateStartTime > 3.0) {
                 state = 4;
                 stateStartTime = getRuntime();
             }
