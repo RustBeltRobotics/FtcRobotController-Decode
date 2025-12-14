@@ -212,8 +212,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
-        // send slower to stop network getting backed up (maybe it would help if I don't flush data inside of sendData)
-        if (loopcounter % 5 == 0) {
+        // send slower to stop network getting backed up (maybe it would help if I don't flush data inside of sendData - oh wait I'm already doing that)
+        if (loopcounter % 3 == 0) {
             webTelemetryStreamer.sendData("heading", angles.firstAngle);
             webTelemetryStreamer.sendData("roll", angles.secondAngle);
             webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
