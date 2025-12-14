@@ -106,9 +106,9 @@ public class RobotAuto0L extends LinearOpMode {
 
 //        webInterface = new WebInterface(8000 + (int)(Math.random() * 800)); // terrible workaround to not releasing port properly
         webInterface = new WebInterface(8885);
-        webInterface.addParameter("Kp_drive", 1.0);
-        webInterface.addParameter("Ki_drive", 0.1);
-        webInterface.addParameter("Kd_drive", 0.3);
+        webInterface.addParameter("Kp_drive", 0.1);
+        webInterface.addParameter("Ki_drive", 0.02);
+        webInterface.addParameter("Kd_drive", 0.05);
 
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
@@ -206,7 +206,7 @@ public class RobotAuto0L extends LinearOpMode {
             webTelemetryStreamer.sendData("roll", angles.secondAngle);
             webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
-            webTelemetryStreamer.sendData("PIDTarget", driveController.drivingPID.target);
+            webTelemetryStreamer.sendData("PIDTarget", (180/3.14159) * driveController.drivingPID.target);
             webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
 
             // 0.01 scale just to make it fit in with the other units (todo: make multiple separate graphs each with one unit)
