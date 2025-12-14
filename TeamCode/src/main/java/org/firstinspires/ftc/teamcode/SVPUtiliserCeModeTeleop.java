@@ -258,11 +258,14 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         aToggler.update(gamepad1.a);
 
 
-        shooter.setPower(shooterToggle ? -1.9 : (-invert_all_emergency * (((gamepad1.left_trigger * 1.9 - gamepad1.right_trigger * 1.9) + (gamepad2.left_trigger * 1.9 - gamepad2.right_trigger * 1.9))/2.0)));
+        double powerLevel = 0.9; // 1.9
 
-        intake.setPower(avg(gamepad2.left_stick_y * 1.9,   invert_all_emergency *   boolToDoubleBecauseItWontCast(aToggler.currentState || gamepad1.b || gamepad1.y) * 1.9));
-        feeder.setPower(avg(gamepad2.right_stick_y * 1.9,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * 1.9));
-        feeder2.setPower(avg(gamepad2.right_stick_x * 1.9, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * 1.9));
+
+        shooter.setPower(shooterToggle ? -powerLevel : (-invert_all_emergency * (((gamepad1.left_trigger * powerLevel - gamepad1.right_trigger * powerLevel) + (gamepad2.left_trigger * powerLevel - gamepad2.right_trigger * powerLevel))/2.0)));
+
+        intake.setPower(avg(gamepad2.left_stick_y * powerLevel,   invert_all_emergency *   boolToDoubleBecauseItWontCast(aToggler.currentState || gamepad1.b || gamepad1.y) * powerLevel));
+        feeder.setPower(avg(gamepad2.right_stick_y * powerLevel,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * powerLevel));
+        feeder2.setPower(avg(gamepad2.right_stick_x * powerLevel, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * powerLevel));
         telemetry.update();
     }
 
