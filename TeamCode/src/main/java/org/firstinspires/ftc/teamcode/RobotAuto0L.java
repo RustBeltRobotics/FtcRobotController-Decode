@@ -208,10 +208,11 @@ public class RobotAuto0L extends LinearOpMode {
 
             webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
 
-            webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-            webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
-            webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-            webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            // 0.01 scale just to make it fit in with the other units (todo: make multiple separate graphs each with one unit)
+            webTelemetryStreamer.sendData("current_frontLeftDrive", 0.01 * ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_frontRightDrive", 0.01 * ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backLeftDrive", 0.01 * ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backRightDrive", 0.01 * ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
         }
 
 
