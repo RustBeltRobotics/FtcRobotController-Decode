@@ -75,7 +75,7 @@ public class WebTelemetryStreamer implements Runnable {
             while (currentClient.isConnected()) {
                 try {
                     String message = messageQueue.poll();
-                    System.out.println("[wts] mq poll");
+//                    System.out.println("[wts] mq poll");
                     if (message != null) {
                         try {
                             this.currentClientOut.write(message.getBytes(StandardCharsets.UTF_8));
@@ -84,11 +84,14 @@ public class WebTelemetryStreamer implements Runnable {
                             // nothing
                             System.out.print("[wts] IOException: ");
                             System.out.println(e.getMessage());
+                            break;
                         }
+                    } else {
+                        System.out.print("[wts] Message null");
                     }
                     Thread.sleep(3); // bad, use blocking queue instead
                 } catch (InterruptedException e) {
-
+                    System.out.print("[wts] InterruptedException");
                 }
             }
 
