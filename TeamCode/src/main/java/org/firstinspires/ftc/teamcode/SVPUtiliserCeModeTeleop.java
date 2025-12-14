@@ -175,9 +175,9 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         waitForStart();
 
-
+        int loopcounter = 0;
         while (opModeIsActive()) {
-            loop2();
+            loop2(loopcounter++);
         }
 
 //        try {
@@ -197,7 +197,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         return input ? 1.0 : 0.0;
     }
 
-    public void loop2() {
+    public void loop2(int loopcounter) {
         telemetry.addLine("Press A to reset Yaw");
         telemetry.addLine("Hold left bumper to drive in robot relative");
         telemetry.addLine("The left joystick sets the robot direction");
@@ -212,18 +212,21 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
-        webTelemetryStreamer.sendData("heading", angles.firstAngle);
-        webTelemetryStreamer.sendData("roll", angles.secondAngle);
-        webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
+        // send slower to stop network getting backed up (maybe it would help if I don't flush data inside of sendData)
+        if (loopcounter % 5 == 0) {
+            webTelemetryStreamer.sendData("heading", angles.firstAngle);
+            webTelemetryStreamer.sendData("roll", angles.secondAngle);
+            webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
-        webTelemetryStreamer.sendData("x", gamepad1.left_stick_x * 100.0);
-        webTelemetryStreamer.sendData("y", gamepad1.left_stick_y * 100.0);
-        webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x * 100.0);
+            webTelemetryStreamer.sendData("x", gamepad1.left_stick_x * 100.0);
+            webTelemetryStreamer.sendData("y", gamepad1.left_stick_y * 100.0);
+            webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x * 100.0);
 
-        webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-        webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
-        webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-        webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+        }
 
         // TODO: make opmode just to test every motors' current draw individually under no load
 
