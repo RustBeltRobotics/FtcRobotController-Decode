@@ -174,11 +174,11 @@ public class MotorRelease extends LinearOpMode {
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
-        webTelemetryStreamer.sendData("heading", angles.firstAngle);
-        webTelemetryStreamer.sendData("roll", angles.secondAngle);
-        webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
-
-        webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
+//        webTelemetryStreamer.sendData("heading", angles.firstAngle);
+//        webTelemetryStreamer.sendData("roll", angles.secondAngle);
+//        webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
+//
+//        webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
 
 
         // This works!
