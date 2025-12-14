@@ -101,6 +101,7 @@ public class RobotAuto0L extends LinearOpMode {
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
 
+        // BNO055IMUNew
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
 
@@ -159,9 +160,8 @@ public class RobotAuto0L extends LinearOpMode {
         System.out.print("yaw before resetYaw: ");
         System.out.println(angles.firstAngle);
 
-        imu.resetYaw();
+        imu.resetYaw(); // aha this is the culprit!! this doesn't work!!! argh
 
-        
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         System.out.print("yaw after resetYaw: ");

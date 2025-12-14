@@ -87,11 +87,11 @@ public class WebTelemetryStreamer implements Runnable {
                             break;
                         }
                     } else {
-                        System.out.print("[wts] Message null");
+//                        System.out.println("[wts] Message null");
                     }
                     Thread.sleep(3); // bad, use blocking queue instead
                 } catch (InterruptedException e) {
-                    System.out.print("[wts] InterruptedException");
+                    System.out.println("[wts] InterruptedException");
                 }
             }
 
