@@ -75,12 +75,15 @@ public class WebTelemetryStreamer implements Runnable {
             while (currentClient.isConnected()) {
                 try {
                     String message = messageQueue.poll();
+                    System.out.println("[wts] mq poll");
                     if (message != null) {
                         try {
                             this.currentClientOut.write(message.getBytes(StandardCharsets.UTF_8));
                             // this.currentClientOut.flush();
                         } catch (IOException e) {
                             // nothing
+                            System.out.print("[wts] IOException: ");
+                            System.out.println(e.getMessage());
                         }
                     }
                     Thread.sleep(3); // bad, use blocking queue instead
@@ -88,6 +91,8 @@ public class WebTelemetryStreamer implements Runnable {
 
                 }
             }
+
+            System.out.println("Web telemetry streamer: Client disconnected !");
         }
     }
 
