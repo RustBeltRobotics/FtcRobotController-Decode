@@ -202,9 +202,11 @@ public class RobotAuto0L extends LinearOpMode {
 
 
         if (loopcounter % 3 == 0) {
-            webTelemetryStreamer.sendData("heading", angles.firstAngle);
-            webTelemetryStreamer.sendData("roll", angles.secondAngle);
-            webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
+            double R2D = 180.0/3.141592653589;
+            // WARNING: Angles are in radians but I am converting to degrees here to make it easier to see on the graph
+            webTelemetryStreamer.sendData("heading", angles.firstAngle * R2D);
+            webTelemetryStreamer.sendData("roll", angles.secondAngle * R2D);
+            webTelemetryStreamer.sendData("pitch", angles.thirdAngle * R2D);
 
             webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
 
