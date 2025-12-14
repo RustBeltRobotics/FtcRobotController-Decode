@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,8 +12,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 import java.util.concurrent.TimeUnit;
 
+@Disabled
 @TeleOp
-
 public class MainTeleOpMode extends LinearOpMode {
     private DcMotor motor1;
     private DcMotor motor2;
