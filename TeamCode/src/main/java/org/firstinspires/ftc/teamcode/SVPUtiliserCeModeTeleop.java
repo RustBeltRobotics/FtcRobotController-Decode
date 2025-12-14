@@ -259,9 +259,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
 
         double powerLevel = 0.9; // 1.9
+        double shooterPowerCoef = 1.9;
 
 
-        shooter.setPower(shooterToggle ? -powerLevel : (-invert_all_emergency * (((gamepad1.left_trigger * powerLevel - gamepad1.right_trigger * powerLevel) + (gamepad2.left_trigger * powerLevel - gamepad2.right_trigger * powerLevel))/2.0)));
+        shooter.setPower(shooterToggle ? -powerLevel : (-invert_all_emergency * (((gamepad1.left_trigger * shooterPowerCoef - gamepad1.right_trigger * shooterPowerCoef) + (gamepad2.left_trigger * powerLevel - gamepad2.right_trigger * powerLevel))/2.0)));
 
         intake.setPower(avg(gamepad2.left_stick_y * powerLevel,   invert_all_emergency *   boolToDoubleBecauseItWontCast(aToggler.currentState || gamepad1.b || gamepad1.y) * powerLevel));
         feeder.setPower(avg(gamepad2.right_stick_y * powerLevel,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * powerLevel));
