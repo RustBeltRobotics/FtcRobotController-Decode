@@ -91,7 +91,6 @@ public class RobotAuto0L extends LinearOpMode {
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
-
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
 
@@ -155,17 +154,19 @@ public class RobotAuto0L extends LinearOpMode {
 
         stateStartTime = getRuntime();
 
-        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+//        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        System.out.print("yaw before resetYaw: ");
-        System.out.println(angles.firstAngle);
+//        System.out.print("yaw before resetYaw: ");
+//        System.out.println(angles.firstAngle);
 
         imu.resetYaw(); // aha this is the culprit!! this doesn't work!!! argh
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        System.out.print("yaw after resetYaw: ");
-        System.out.println(angles.firstAngle);
+//        System.out.print("yaw after resetYaw: ");
+//        System.out.println(angles.firstAngle);
+
+        driveController.yawZero = angles.firstAngle;
 
         int loopcounter = 0;
         while (opModeIsActive()) {
@@ -279,7 +280,7 @@ public class RobotAuto0L extends LinearOpMode {
             }
         } else if (state == 3) {
             telemetry.addLine("Drive 2...");
-            driveController.driveFieldRelative(-0.3, 0, 0);
+            driveController.driveFieldRelative(-0.1, 0, 0);
             if (getRuntime() - stateStartTime > 3.0) {
                 state = 4;
                 stateStartTime = getRuntime();

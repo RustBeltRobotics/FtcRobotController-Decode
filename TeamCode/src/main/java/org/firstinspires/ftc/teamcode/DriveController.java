@@ -21,6 +21,8 @@ public class DriveController {
 
     Orientation angles;
 
+    double yawZero;
+
     DriveController(Rev9AxisImu imu, DcMotor frontRightDrive, DcMotor frontLeftDrive, DcMotor backLeftDrive, DcMotor backRightDrive, PIDController pid) {
         this.drivingPID = pid; // meh pid
         this.imu = imu;
@@ -71,7 +73,9 @@ public class DriveController {
         // TODO: Continuousalize this, or use quaternion maybe, because I think wrapping around is causing the issue that only appears half the time
         angles = this.imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        double currentRotation = 3.14159 + AngleUnit.normalizeRadians(angles.firstAngle * (3.141592653589/180));
+        double yaw_corrected = (((angles.firstAngle - this.yawZero) + 180.0)) % 360.0 - 180.0;
+
+        double currentRotation = Math.PI + AngleUnit.normalizeRadians(yaw_corrected * (Math.PI/180));
 
         ;//AngleUnit.normalizeRadians(theta -
         //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
