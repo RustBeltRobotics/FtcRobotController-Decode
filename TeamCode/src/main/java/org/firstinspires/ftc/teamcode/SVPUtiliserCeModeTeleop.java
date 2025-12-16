@@ -298,7 +298,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         aToggler.update(gamepad1.a);
 
 
-        double shooterPowerCoef = 1.9;
+        double shooterPowerCoef = 0.85;
         double upperWheelPower = 0.3;
         double restPowerLevel = 1.9; // 1.9
 
