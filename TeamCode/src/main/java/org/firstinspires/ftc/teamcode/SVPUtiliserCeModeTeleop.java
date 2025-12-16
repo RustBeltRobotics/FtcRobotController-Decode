@@ -297,7 +297,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         double r = Math.hypot(right, forward);
 
         // Second, rotate angle by the angle the robot is pointing
-        theta = AngleUnit.normalizeRadians(theta - angles.firstAngle * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
+        // reverse angle because the robot magically got mixed up and the angle was inverted
+        theta = AngleUnit.normalizeRadians(theta - (180.0-angles.firstAngle) * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
                 //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
 
         // Third, convert back to cartesian
