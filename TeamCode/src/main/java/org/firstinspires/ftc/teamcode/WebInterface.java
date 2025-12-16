@@ -187,7 +187,7 @@ public class WebInterface implements Runnable {
         }
 
         String js = sliderArray + "].forEach( key => document.getElementById(key).addEventListener('input', (ev) => {  document.getElementById(key+'_l').innerText=ev.target.value;  fetch('/setValue?'+ev.target.id+':'+ev.target.value)  }));";
-        
+
         return "<!DOCTYPE html><html lang=\"en\"><head><title>FTC Web Interface</title></head><body>\n"
                + sliders
                +"<canvas id=\"canvas\" width=\"800\" height=\"450\"></canvas>"

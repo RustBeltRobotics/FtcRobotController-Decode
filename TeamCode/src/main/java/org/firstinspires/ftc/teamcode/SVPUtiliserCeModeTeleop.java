@@ -91,6 +91,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
     WebTelemetryStreamer webTelemetryStreamer;
 
+    WebInterface webInterface;
+
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
@@ -116,6 +118,12 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webTelemetryStreamer = new WebTelemetryStreamer(8886);
         Thread webTelemetryStreamerThread = new Thread(webTelemetryStreamer);
         webTelemetryStreamerThread.start(); // start server
+
+        webInterface = new WebInterface(8885);
+        webInterface.addParameter("shooter_power", 0.85);
+        webInterface.addParameter("feeder2_power", 0.30);
+        Thread webInterfaceThread = new Thread(webInterface);
+        webInterfaceThread.start(); // start server
 
 //        SoundPlayer soundPlayer = new SoundPlayer(1, 4096);
 //        soundPlayer.play()
@@ -298,8 +306,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         aToggler.update(gamepad1.a);
 
 
-        double shooterPowerCoef = 0.80;
-        double upperWheelPower = 0.3;
+        double shooterPowerCoef = webInterface.getParameter("shooter_power"); // 0.80;
+        double upperWheelPower = webInterface.getParameter("feeder2_power");  // 0.3
         double restPowerLevel = 1.9; // 1.9
 
 
