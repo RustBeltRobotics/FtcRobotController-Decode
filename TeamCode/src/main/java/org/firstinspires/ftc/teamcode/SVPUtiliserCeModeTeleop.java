@@ -184,8 +184,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        driveController.init();
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-//        driveController.yawZero = angles.firstAngle;
-        yawZero = angles.firstAngle;
+//        driveController.yawZero = 0.0 - angles.firstAngle;
+        yawZero = 0.0 - angles.firstAngle;
 
         int loopcounter = 0;
         while (opModeIsActive()) {
@@ -246,9 +246,9 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         // If you press the A button, then you reset the Yaw to be zero from the way
         // the robot is currently pointing
-        if (gamepad1.a) {
+//        if (gamepad1.a) {
 //            imu.resetYaw();
-        }
+//        }
         // If you press the left bumper, you get a drive from the point of view of the robot
         // (much like driving an RC vehicle)
 
@@ -276,7 +276,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         }
 
         if (gamepad1.dpad_up) {
-            yawZero = angles.firstAngle;
+            yawZero = 0.0 - angles.firstAngle;
         }
 
         lastGamepadX = gamepad1.x;
