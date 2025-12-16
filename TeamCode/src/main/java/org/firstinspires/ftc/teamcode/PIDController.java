@@ -39,7 +39,7 @@ public class PIDController {
         double proportional = error;
 
         integral += error * sampleTime;
-        integral = Math.min(Math.max(integral, -100.0), 100.0);
+//        integral = Math.min(Math.max(integral, -100.0), 100.0);
 
         double derivative = (error - previousError) / sampleTime;
 

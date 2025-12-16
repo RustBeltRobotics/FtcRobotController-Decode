@@ -73,9 +73,9 @@ public class DriveController {
         // TODO: Continuousalize this, or use quaternion maybe, because I think wrapping around is causing the issue that only appears half the time
         angles = this.imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        double yaw_corrected = (((angles.firstAngle - this.yawZero) + 180.0)) % 360.0 - 180.0;
+        double yaw_corrected = ((((0.0 - angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
 
-        double currentRotation = Math.PI + AngleUnit.normalizeRadians(yaw_corrected * (Math.PI/180));
+        double currentRotation = AngleUnit.normalizeRadians(yaw_corrected * (Math.PI/180));
 
         ;//AngleUnit.normalizeRadians(theta -
         //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
@@ -121,11 +121,17 @@ public class DriveController {
         backLeftDrive.setPower(1.0);
         backRightDrive.setPower(1.0);
 
+        int euc = (int) (coef * maxSpeed * (frontLeftPower / maxPower));
+//        System.out.print("test: ");
+//        System.out.println(euc);
+//        System.out.println(frontLeftPower);
+//        System.out.println(forward);
 
-        frontLeftDrive.setTargetPosition(frontLeftDrive.getTargetPosition() + (int) (coef * maxSpeed * (frontLeftPower / maxPower)));
-        frontRightDrive.setTargetPosition(frontRightDrive.getTargetPosition() + (int) (coef * maxSpeed * (frontRightPower / maxPower)));
-        backLeftDrive.setTargetPosition(backLeftDrive.getTargetPosition() + (int) (coef * maxSpeed * (backLeftPower / maxPower)));
-        backRightDrive.setTargetPosition(backRightDrive.getTargetPosition() + (int) (coef * maxSpeed * (backRightPower / maxPower)));
+
+        frontLeftDrive.setTargetPosition(frontLeftDrive.getCurrentPosition() + (int) (coef * maxSpeed * (frontLeftPower / maxPower)));
+        frontRightDrive.setTargetPosition(frontRightDrive.getCurrentPosition() + (int) (coef * maxSpeed * (frontRightPower / maxPower)));
+        backLeftDrive.setTargetPosition(backLeftDrive.getCurrentPosition() + (int) (coef * maxSpeed * (backLeftPower / maxPower)));
+        backRightDrive.setTargetPosition(backRightDrive.getCurrentPosition() + (int) (coef * maxSpeed * (backRightPower / maxPower)));
 
         frontLeftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         frontRightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
