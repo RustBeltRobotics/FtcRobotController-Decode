@@ -32,7 +32,7 @@
         const MAX_DATA_POINTS = 150;
         
         // Visual Settings
-        const PADDING = { top: 20, right: 20, bottom: 30, left: 50 }; // Space for labels
+        const PADDING = { top: 20, right: 20, bottom: 30, left: 100 }; // Space for labels
         const LINE_WIDTH = 3;
         // A nice palette of distinct colors
         const PALETTE = ['#e6194b', '#3cb44b', '#0082c8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#d2f53c', '#fabebe', '#008080'];
@@ -205,15 +205,15 @@
             if (keys.length === 0) return;
 
             ctx.save();
-            ctx.font = "12px sans-serif";
+            ctx.font = "24px sans-serif";
             ctx.textBaseline = "middle";
             ctx.textAlign = "left";
 
             const boxX = PADDING.left + 15;
             const boxY = PADDING.top + 10;
-            const lineHeight = 20;
-            const colorBoxSize = 12;
-            const padding = 10;
+            const lineHeight = 40;
+            const colorBoxSize = 24;
+            const padding = 13;
 
             // Calculate width needed for the legend box
             let maxWidth = 0;
@@ -252,7 +252,7 @@
             ctx.lineWidth = 1;
             ctx.strokeStyle = "#e0e0e0"; // Light grey for grid
             ctx.fillStyle = "#666";       // Text color
-            ctx.font = "10px sans-serif";
+            ctx.font = "20px sans-serif";
             ctx.textAlign = "right";
             ctx.textBaseline = "middle";
 

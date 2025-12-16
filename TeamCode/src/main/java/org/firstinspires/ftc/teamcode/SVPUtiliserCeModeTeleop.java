@@ -43,6 +43,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -93,6 +94,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
     WebInterface webInterface;
 
+    VoltageSensor voltageSensor;
+
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
@@ -128,6 +131,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        SoundPlayer soundPlayer = new SoundPlayer(1, 4096);
 //        soundPlayer.play()
 //        SoundPlayer.getInstance().startPlaying();
+
+        voltageSensor = hardwareMap.get(VoltageSensor.class, "voltage_sensor");
 
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
@@ -259,6 +264,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("current_feeder", ((DcMotorEx) feeder).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_feeder2", ((DcMotorEx) feeder2).getCurrent(CurrentUnit.MILLIAMPS));
 
+            webTelemetryStreamer.sendData("battery_voltage", voltageSensor.getVoltage());
         }
 
         // TODO: make opmode just to test every motors' current draw individually under no load
