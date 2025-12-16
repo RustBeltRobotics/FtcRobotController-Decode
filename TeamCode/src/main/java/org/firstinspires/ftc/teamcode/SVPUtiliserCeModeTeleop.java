@@ -94,8 +94,6 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
     WebInterface webInterface;
 
-    VoltageSensor voltageSensor;
-
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
 
@@ -132,8 +130,6 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        soundPlayer.play()
 //        SoundPlayer.getInstance().startPlaying();
 
-        voltageSensor = hardwareMap.get(VoltageSensor.class, "voltage_sensor");
-
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
@@ -141,7 +137,6 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
 
         shooter = hardwareMap.get(DcMotor.class, "shooter");
-
 
         intake = hardwareMap.get(DcMotor.class, "intake");
         feeder = hardwareMap.get(DcMotor.class, "feeder");
@@ -264,7 +259,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("current_feeder", ((DcMotorEx) feeder).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_feeder2", ((DcMotorEx) feeder2).getCurrent(CurrentUnit.MILLIAMPS));
 
-            webTelemetryStreamer.sendData("battery_voltage", voltageSensor.getVoltage());
+            for (VoltageSensor sensor : hardwareMap.voltageSensor) {
+                webTelemetryStreamer.sendData("battery_voltage", sensor.getVoltage() * 100); // multiply by 100 so it is in a similar range to other values
+                break;
+            }
         }
 
         // TODO: make opmode just to test every motors' current draw individually under no load
