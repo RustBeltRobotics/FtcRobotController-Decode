@@ -98,6 +98,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
     DriveController driveController;
 
+    double yawZero;
+
 
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
@@ -183,6 +185,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 //        driveController.yawZero = angles.firstAngle;
+        yawZero = angles.firstAngle;
 
         int loopcounter = 0;
         while (opModeIsActive()) {
@@ -272,6 +275,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             shooterToggle = !shooterToggle;
         }
 
+        if (gamepad1.dpad_up) {
+            yawZero = angles.firstAngle;
+        }
+
         lastGamepadX = gamepad1.x;
 
 
@@ -307,7 +314,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         // Second, rotate angle by the angle the robot is pointing
         // reverse angle because the robot magically got mixed up and the angle was inverted
-        theta = AngleUnit.normalizeRadians(theta - (180.0-angles.firstAngle) * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
+
+        double yaw_corrected = ((((0.0-angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
+
+        theta = AngleUnit.normalizeRadians(theta - (yaw_corrected) * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
                 //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
 
         // Third, convert back to cartesian
