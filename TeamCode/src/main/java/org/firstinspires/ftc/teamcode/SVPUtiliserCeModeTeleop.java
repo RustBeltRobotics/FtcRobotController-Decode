@@ -239,10 +239,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
 
-            webTelemetryStreamer.sendData("speed_shooter", ((DcMotorEx) shooter).getVelocity(AngleUnit.DEGREES));
+            webTelemetryStreamer.sendData("speed_shooter", -((DcMotorEx) shooter).getVelocity(AngleUnit.DEGREES));
 
-            webTelemetryStreamer.sendData("speed_intake", ((DcMotorEx) intake).getVelocity(AngleUnit.DEGREES));
-            webTelemetryStreamer.sendData("speed_feeder", ((DcMotorEx) feeder).getVelocity(AngleUnit.DEGREES));
+            webTelemetryStreamer.sendData("speed_intake", -((DcMotorEx) intake).getVelocity(AngleUnit.DEGREES));
+            webTelemetryStreamer.sendData("speed_feeder", -((DcMotorEx) feeder).getVelocity(AngleUnit.DEGREES));
             webTelemetryStreamer.sendData("speed_feeder2", ((DcMotorEx) feeder2).getVelocity(AngleUnit.DEGREES));
 
 
