@@ -259,7 +259,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         if (!gamepad1.right_bumper) {
 //           driveController.driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+            driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
             telemetry.addLine("RIGHT BUMPER");
             drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
@@ -315,7 +315,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         // Second, rotate angle by the angle the robot is pointing
         // reverse angle because the robot magically got mixed up and the angle was inverted
 
-        double yaw_corrected = ((((0.0-angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
+        double yaw_corrected = ((((angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
 
         theta = AngleUnit.normalizeRadians(theta - (yaw_corrected) * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
                 //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
