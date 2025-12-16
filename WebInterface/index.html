@@ -4,15 +4,21 @@
     <title>FTC Web Interface</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
-        #canvas { background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #canvas {
+            background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 1000px;
+            height: 450px;
+        }
         .slider-container { margin-bottom: 5px; }
         label { display: inline-block; width: 150px; }
     </style>
 </head>
 <body>
     <div id="sliders"></div>
-    <br/>
-    <canvas id="canvas" width="800" height="450"></canvas>
+    <br>
+    <canvas id="canvas" width="2000" height="900"></canvas>
+    <br>
+    <button onclick="saveHistory()">save data</button>
 
     <script>
         const slidersElement = document.getElementById("sliders");
@@ -61,6 +67,7 @@
         // setInterval(() => applyUpdate({ "Motor 1": Math.sin(Date.now()/500) * 10, "Servo": Math.cos(Date.now()/1000) * 5 }), 50);
 
         const series = {};
+        const fullHistory = [];
         // Map keys to specific colors to keep them consistent
         const keyColorMap = {}; 
         let colorIndex = 0;
@@ -68,6 +75,8 @@
         function applyUpdate(updateObj) {
             const keys = Object.keys(updateObj);
             if (keys.length === 0) return;
+
+            fullHistory.push(updateObj);
 
             const now = Date.now();
 
@@ -93,6 +102,18 @@
             render();
         }
 
+        function saveHistory() {
+            const text = fullHistory.map(x=>JSON.stringify(x)).join(',\n');
+            const blobb = new Blob([text], {type: 'text/plain'});
+
+            const url = URL.createObjectURL(blobb);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ftc-log-${new Date().toISOString()}-${fullHistory.length}`;
+            a.click();
+        }
+
         setInterval(render, 500);
 
         function render() {
@@ -102,11 +123,11 @@
             // red line if not connected
             if (evs.readyState != evs.OPEN) {
                 ctx.strokeStyle = "red";
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 4;
                 ctx.strokeRect(0, 0, canvas.width, canvas.height)
             } else {
                 ctx.strokeStyle = "green";
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 4;
                 ctx.strokeRect(0, 0, canvas.width, canvas.height)
             }
 
