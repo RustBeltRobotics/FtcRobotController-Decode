@@ -123,6 +123,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webInterface = new WebInterface(8885);
         webInterface.addParameter("shooter_power", 0.85);
         webInterface.addParameter("feeder2_power", 0.30);
+
+        webInterface.addParameter("Kp_drive", 0.1);
+        webInterface.addParameter("Ki_drive", 0.02);
+        webInterface.addParameter("Kd_drive", 0.05);
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
 
@@ -188,12 +192,12 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         waitForStart();
 
-        //        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(1.0, 0.1, 0.3));
-//        driveController.init();
+                driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(1.0, 0.1, 0.3));
+        driveController.init();
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-//        driveController.yawZero = 0.0 - angles.firstAngle;
-        yawZero = 0.0 - angles.firstAngle;
+        driveController.yawZero = 0.0 - angles.firstAngle;
+//        yawZero = 0.0 - angles.firstAngle;
 
         int loopcounter = 0;
         while (opModeIsActive()) {
@@ -222,6 +226,12 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addLine("Hold left bumper to drive in robot relative");
         telemetry.addLine("The left joystick sets the robot direction");
         telemetry.addLine("Moving the right joystick left and right turns the robot");
+
+        driveController.drivingPID.setCoefs(
+                webInterface.getParameter("Kp_drive"),
+                webInterface.getParameter("Ki_drive"),
+                webInterface.getParameter("Kd_drive")
+        );
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -284,8 +294,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         if (!gamepad1.right_bumper) {
-//           driveController.driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-            driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+           driveController.driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+//            driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         } else {
             telemetry.addLine("RIGHT BUMPER");
             drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
