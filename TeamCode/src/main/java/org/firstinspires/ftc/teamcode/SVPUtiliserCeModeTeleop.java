@@ -238,6 +238,19 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+
+            webTelemetryStreamer.sendData("speed_shooter", ((DcMotorEx) shooter).getVelocity(AngleUnit.RADIANS));
+
+            webTelemetryStreamer.sendData("speed_intake", ((DcMotorEx) intake).getVelocity(AngleUnit.RADIANS));
+            webTelemetryStreamer.sendData("speed_feeder", ((DcMotorEx) feeder).getVelocity(AngleUnit.RADIANS));
+            webTelemetryStreamer.sendData("speed_feeder2", ((DcMotorEx) feeder2).getVelocity(AngleUnit.RADIANS));
+
+
+            webTelemetryStreamer.sendData("current_shooter", ((DcMotorEx) shooter).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_intake", ((DcMotorEx) intake).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_feeder", ((DcMotorEx) feeder).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_feeder2", ((DcMotorEx) feeder2).getCurrent(CurrentUnit.MILLIAMPS));
+            
         }
 
         // TODO: make opmode just to test every motors' current draw individually under no load
@@ -286,7 +299,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
 
         double shooterPowerCoef = 1.9;
-        double upperWheelPower = 0.9;
+        double upperWheelPower = 0.6;
         double restPowerLevel = 1.9; // 1.9
 
 
