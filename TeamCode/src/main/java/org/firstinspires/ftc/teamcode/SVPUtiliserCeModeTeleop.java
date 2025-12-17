@@ -121,8 +121,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webTelemetryStreamerThread.start(); // start server
 
         webInterface = new WebInterface(8885);
-        webInterface.addParameter("shooter_power", 0.85);
-        webInterface.addParameter("feeder2_power", 0.30);
+        webInterface.addParameter("shooter_power", 0.55);
+        webInterface.addParameter("feeder2_power", 0.4);
 
         webInterface.addParameter("Kp_drive", 0.1);
         webInterface.addParameter("Ki_drive", 0.02);
@@ -312,7 +312,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         }
 
         if (gamepad1.dpad_up) {
-            yawZero = 0.0 - angles.firstAngle;
+            driveController.yawZero = 0.0 - angles.firstAngle;
         }
 
         lastGamepadX = gamepad1.x;

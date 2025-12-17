@@ -74,14 +74,13 @@ public class DriveController {
         angles = this.imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         double yaw_corrected = ((((0.0 - angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
+//
+//        double currentError = AngleUnit.normalizeRadians(rotate - yaw_corrected * (Math.PI/180));
 
-        double currentRotation = AngleUnit.normalizeRadians(yaw_corrected * (Math.PI/180));
+//        drivingPID.setTarget(0);
+//        rotate = 0.2 * drivingPID.loop(currentError);
 
-        ;//AngleUnit.normalizeRadians(theta -
-        //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
-        drivingPID.setTarget(theta);
-
-        theta = drivingPID.loop(currentRotation);
+        theta = AngleUnit.normalizeRadians(theta - (yaw_corrected) * (3.141592653589/180));//AngleUnit.n
 
         // Third, convert back to cartesian
         double newForward = r * Math.sin(theta);
@@ -114,7 +113,7 @@ public class DriveController {
         // We multiply by maxSpeed so that it can be set lower for outreaches
         // When a young child is driving the robot, we may not want to allow full
         // speed.
-        double coef = 100.0;
+        double coef = 500.0;
 
         frontLeftDrive.setPower(1.0);
         frontRightDrive.setPower(1.0);
