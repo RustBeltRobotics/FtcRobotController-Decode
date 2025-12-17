@@ -58,6 +58,11 @@ public class WebInterface implements Runnable {
         parameters.put(key, defaultValue);
     }
 
+    // TODO: fix this because it could crash due to multithreading conflicts if this is set after the server is started
+    public void setParameter(String key, double value) {
+        parameters.put(key, value);
+    }
+
     public void addParameter(String key) {
         if (this.mode != Mode.INITIALIZE) return;
         parameters.put(key, 0.0);

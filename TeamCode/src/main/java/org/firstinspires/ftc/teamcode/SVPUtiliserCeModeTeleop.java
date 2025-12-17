@@ -331,6 +331,25 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         intake.setPower(avg(gamepad2.left_stick_y * restPowerLevel,   invert_all_emergency *   boolToDoubleBecauseItWontCast(aToggler.currentState || gamepad1.b || gamepad1.y) * restPowerLevel));
         feeder.setPower(avg(gamepad2.right_stick_y * restPowerLevel,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * restPowerLevel));
         feeder2.setPower(avg(gamepad2.right_stick_x * upperWheelPower, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * upperWheelPower));
+
+
+        if (gamepad2.aWasPressed()) {
+            webInterface.setParameter("shooter_power", 0.55);
+        }
+
+        if (gamepad2.bWasPressed()) {
+            webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") + 0.05);
+        }
+
+        if (gamepad2.xWasPressed()) {
+            webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") - 0.05);
+        }
+
+
+
+        telemetry.addData("shooter_power", webInterface.getParameter("shooter_power"));
+
+//        gamepad2.resetEdgeDetection();
         telemetry.update();
     }
 
