@@ -113,7 +113,7 @@ public class DriveController {
         // We multiply by maxSpeed so that it can be set lower for outreaches
         // When a young child is driving the robot, we may not want to allow full
         // speed.
-        double coef = 500.0;
+        double coef = 900.0;
 
         frontLeftDrive.setPower(1.0);
         frontRightDrive.setPower(1.0);

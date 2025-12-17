@@ -85,7 +85,7 @@ public class RobotAuto0L extends LinearOpMode {
     WebInterface webInterface;
     WebTelemetryStreamer webTelemetryStreamer;
 
-    int state = 3; // set to 3 to start driving immediately
+    int state = 0; // set to 3 to start driving immediately
     double stateStartTime = 0;
 
     boolean shooterToggle = false;
@@ -273,14 +273,14 @@ public class RobotAuto0L extends LinearOpMode {
             }
         } else if (state == 2) {
             telemetry.addLine("Drive 1...");
-            driveController.driveFieldRelative(0, -0.3, 0);
-            if (getRuntime() - stateStartTime > 1.0) {
+            driveController.driveFieldRelative(0.4, -0.0, 0);
+            if (getRuntime() - stateStartTime > 2.0) {
                 state = 3;
                 stateStartTime = getRuntime();
             }
         } else if (state == 3) {
             telemetry.addLine("Drive 2...");
-            driveController.driveFieldRelative(-0.1, 0, 0);
+            driveController.driveFieldRelative(0.0, -0.4, 0);
             if (getRuntime() - stateStartTime > 3.0) {
                 state = 4;
                 stateStartTime = getRuntime();
