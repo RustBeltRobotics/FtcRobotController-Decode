@@ -16,6 +16,10 @@ public class PIDController {
 
     double output = 0.0;
 
+    double deadbandSizeCoef = 0.7;
+
+    double deadbandDepthCoef = 0.9;
+
     PIDController(double Kp, double Ki, double Kd) {
         this.Kp = Kp;
         this.Ki = Ki;
@@ -35,7 +39,7 @@ public class PIDController {
     }
 
     double loop(double value) {
-        double error = this.target - value;
+        double error = calculateDeadband(this.target - value);
         double proportional = error;
 
         integral += error * sampleTime;
@@ -48,5 +52,10 @@ public class PIDController {
         previousError = error;
 
         return output;
+    }
+
+    double calculateDeadband(double v) {
+        double x = this.deadbandSizeCoef * v;
+        return v * (1 - (4 * this.deadbandDepthCoef) * (1/(1+Math.pow(Math.E, x))) * (1-1/(1+Math.pow(Math.E, x))));
     }
 }

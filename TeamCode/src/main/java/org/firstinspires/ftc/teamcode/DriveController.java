@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class DriveController {
 
-    PIDController drivingPID;// = new PIDController(1.0, 0.1, 0.3); // meh pid
+    public PIDController drivingPID;// = new PIDController(1.0, 0.1, 0.3); // meh pid
 
     DcMotor frontLeftDrive;
     DcMotor frontRightDrive;
@@ -50,6 +50,7 @@ public class DriveController {
         frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
     }
 
     void stop() {
@@ -74,11 +75,10 @@ public class DriveController {
         angles = this.imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         double yaw_corrected = ((((0.0 - angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
-//
-//        double currentError = AngleUnit.normalizeRadians(rotate - yaw_corrected * (Math.PI/180));
 
+//        double currentError = AngleUnit.normalizeRadians(rotate - yaw_corrected * (Math.PI/180));
 //        drivingPID.setTarget(0);
-//        rotate = 0.2 * drivingPID.loop(currentError);
+//        rotate = drivingPID.loop(currentError);
 
         theta = AngleUnit.normalizeRadians(theta - (yaw_corrected) * (3.141592653589/180));//AngleUnit.n
 

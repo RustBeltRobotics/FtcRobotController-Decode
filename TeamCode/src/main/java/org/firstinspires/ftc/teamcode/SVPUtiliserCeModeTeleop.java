@@ -124,9 +124,13 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webInterface.addParameter("shooter_power", 0.55);
         webInterface.addParameter("feeder2_power", 0.4);
 
-        webInterface.addParameter("Kp_drive", 0.1);
-        webInterface.addParameter("Ki_drive", 0.02);
-        webInterface.addParameter("Kd_drive", 0.05);
+        webInterface.addParameter("Kp_drive", 0.01);
+        webInterface.addParameter("Ki_drive", 0.00);
+        webInterface.addParameter("Kd_drive", 0.00);
+
+        webInterface.addParameter("dbsizec", 0.3);
+        webInterface.addParameter("dbdepthc", 0.3);
+
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
 
@@ -192,7 +196,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         waitForStart();
 
-                driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(1.0, 0.1, 0.3));
+        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(0.0, 0.0, 0.0));
         driveController.init();
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -204,9 +208,9 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             loop2(loopcounter++);
         }
 
-//        try {
-//            webInterface.stop();
-//        } catch (IOException e) {}
+        try {
+            webInterface.stop();
+        } catch (IOException e) {}
 
         try {
             webTelemetryStreamer.stop();
@@ -233,6 +237,17 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
                 webInterface.getParameter("Kd_drive")
         );
 
+        driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
+        driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
+
+
+        System.out.print("hashfuaehwoigfheraoiwghioe: ");
+        System.out.println(webInterface.getParameter("Kp_drive"));
+        System.out.println(driveController.drivingPID.Kp);
+        System.out.println(driveController.drivingPID.Ki);
+        System.out.println(driveController.drivingPID.Kd);
+
+
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         telemetry.addData("connection", imu.getConnectionInfo());
@@ -248,14 +263,17 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("roll", angles.secondAngle);
             webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
 
+            webTelemetryStreamer.sendData("PIDTarget", (180/3.14159) * driveController.drivingPID.target);
+            webTelemetryStreamer.sendData("PIDOutput", driveController.drivingPID.output);
+
             webTelemetryStreamer.sendData("x", gamepad1.left_stick_x * 100.0);
             webTelemetryStreamer.sendData("y", gamepad1.left_stick_y * 100.0);
             webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x * 100.0);
 
-            webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-            webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
-            webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-            webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+//            webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+//            webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+//            webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+//            webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
 
             webTelemetryStreamer.sendData("speed_shooter", -((DcMotorEx) shooter).getVelocity(AngleUnit.DEGREES));
 
@@ -271,7 +289,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
             // get voltage sensor (there are two one is on the expansion hub and this is not ideal as it does not specify which one to use)
             for (VoltageSensor sensor : hardwareMap.voltageSensor) {
-                webTelemetryStreamer.sendData("battery_voltage", sensor.getVoltage() * 100); // multiply by 100 so it is in a similar range to other values
+//                webTelemetryStreamer.sendData("battery_voltage", sensor.getVoltage() * 100); // multiply by 100 so it is in a similar range to other values
                 break;
             }
         }
