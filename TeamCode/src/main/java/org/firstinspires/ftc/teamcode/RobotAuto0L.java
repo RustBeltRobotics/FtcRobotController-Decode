@@ -150,7 +150,7 @@ public class RobotAuto0L extends LinearOpMode {
                 }
             }
 
-            return null;
+            return state;
         });
 
     }
