@@ -27,7 +27,7 @@
 
         // Configuration
         const HOST = '192.168.43.1';
-        const PORT1 = 8885;
+        // const PORT1 = 8885;
         const PORT2 = 8886;
         const MAX_DATA_POINTS = 150;
         
@@ -37,23 +37,23 @@
         // A nice palette of distinct colors
         const PALETTE = ['#e6194b', '#3cb44b', '#0082c8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#d2f53c', '#fabebe', '#008080'];
 
-        // --- Slider Logic ---
-        fetch("http://" + HOST + ':' + PORT1)
-            .then((x) => x.json()) // FIXED: added ()
-            .then((sliders) =>
-                sliders.forEach(([key, value]) => {
-                    const container = document.createElement("div");
-                    container.className = "slider-container";
-                    container.innerHTML = `<label>${key}:</label><input id="${key}" type="range" min="0.0" max="2.0" step="0.01" value="${value}" /><label id="${key}_l">${value}</label>`;
-                    slidersElement.appendChild(container);
+        // // --- Slider Logic ---
+        // fetch("http://" + HOST + ':' + PORT1)
+        //     .then((x) => x.json()) // FIXED: added ()
+        //     .then((sliders) =>
+        //         sliders.forEach(([key, value]) => {
+        //             const container = document.createElement("div");
+        //             container.className = "slider-container";
+        //             container.innerHTML = `<label>${key}:</label><input id="${key}" type="range" min="0.0" max="2.0" step="0.01" value="${value}" /><label id="${key}_l">${value}</label>`;
+        //             slidersElement.appendChild(container);
 
-                    document.getElementById(key).addEventListener("input", (ev) => {
-                        document.getElementById(key + "_l").innerText = ev.target.value;
-                        // Note: Ensure your server handles this GET format
-                        fetch("/setValue?" + ev.target.id + ":" + ev.target.value);
-                    });
-                })
-            ).catch(e => console.log("Slider fetch failed (offline mode?):", e));
+        //             document.getElementById(key).addEventListener("input", (ev) => {
+        //                 document.getElementById(key + "_l").innerText = ev.target.value;
+        //                 // Note: Ensure your server handles this GET format
+        //                 fetch("/setValue?" + ev.target.id + ":" + ev.target.value);
+        //             });
+        //         })
+        //     ).catch(e => console.log("Slider fetch failed (offline mode?):", e));
 
         // --- Graph Logic ---
         const evs = new EventSource("http://" + HOST + ':' + PORT2, {timeout: 400, maxReconnects: 200}); // config not working?
