@@ -147,7 +147,7 @@ public class RobotAuto0L extends LinearOpMode {
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(1.0, 0.1, 0.3));
+        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(0.0, 0.0, 0.0));
         driveController.init();
 
         driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
@@ -257,21 +257,28 @@ public class RobotAuto0L extends LinearOpMode {
             telemetry.addLine("Shooter spin-up...");
             shooter.setPower(-0.55);
 
-            driveController.driveFieldRelative(2.0, 0.0, 0);
+            driveController.driveFieldRelative(0.0, 0.0, 0);
+
+            if (getRuntime() - stateStartTime > 0.5) {
+                state++;
+                stateStartTime = getRuntime();
+            }
+        } else if (state == 1) {
+            driveController.driveFieldRelative(1.0, 0.0, 0);
 
             if (getRuntime() - stateStartTime > 0.2) {
                 state++;
                 stateStartTime = getRuntime();
             }
-        } else if (state == 1) {
+        } else if (state == 2) {
 //            driveController.driveFieldRelativeAuto(0.0, 0.0, 0);
-            driveController.stop();
+//            driveController.stop();
 
-            if (getRuntime() - stateStartTime > 2.8) {
+            if (getRuntime() - stateStartTime > 2.3) {
                 state++;
                 stateStartTime = getRuntime();
             }
-        } else if (state == 2) {
+        } else if (state == 3) {
             // shoot balls
             telemetry.addLine("Shooting balls...");
             intake.setPower(1.9);
@@ -284,26 +291,27 @@ public class RobotAuto0L extends LinearOpMode {
                 feeder.setPower(0);
                 feeder2.setPower(0);
 
-//                state++;
-                state = -1; // end
-                stateStartTime = getRuntime();
-            }
-        } else if (state == 3) {
-            telemetry.addLine("Drive 1...");
-            driveController.driveFieldRelativeAuto(0.0, -0.25, 0);
-            if (getRuntime() - stateStartTime > 2.0) {
-//                state++;
-                state = -1; // end
+                state++;
+//                state = -1; // end
                 stateStartTime = getRuntime();
             }
         } else if (state == 4) {
-            telemetry.addLine("Drive 2...");
-            driveController.driveFieldRelativeAuto(0.0, -0.4, 0);
-            if (getRuntime() - stateStartTime > 3.0) {
-                state++;
+            telemetry.addLine("Drive 1...");
+            driveController.driveFieldRelative(1.0, 0.0, 0);
+            if (getRuntime() - stateStartTime > 2) {
+//                state++;
+                state = -1; // end
                 stateStartTime = getRuntime();
             }
         } else if (state == 5) {
+            telemetry.addLine("Drive 2...");
+            driveController.driveFieldRelative(0.0, -0.4, 0);
+            if (getRuntime() - stateStartTime > 3.0) {
+//                state++;
+                state = -1; // end
+                stateStartTime = getRuntime();
+            }
+        } else if (state == 6) {
 //            driveFieldRelativeAuto(0, 0, 0);
 
             driveController.stop();
