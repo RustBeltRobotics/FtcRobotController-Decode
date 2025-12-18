@@ -136,7 +136,7 @@ public class RobotAuto0L extends LinearOpMode {
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
 
-                if (getRuntime() - stateStartTime > 1.25) {
+                if (getRuntime() - stateStartTime > 1.4) {
                     state++;
 //                state = -1; // end
                     stateStartTime = getRuntime();
@@ -144,6 +144,9 @@ public class RobotAuto0L extends LinearOpMode {
             } else if (state == 6) {
 
                 if (getRuntime() - stateStartTime > 1.0) {
+                    autoThing.intake.setPower(0);
+                    autoThing.feeder.setPower(0);
+
                     state++;
 //                state = -1; // end
                     stateStartTime = getRuntime();
@@ -154,6 +157,5 @@ public class RobotAuto0L extends LinearOpMode {
         });
 
     }
-
 
 }
