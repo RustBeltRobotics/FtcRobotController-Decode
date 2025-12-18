@@ -109,7 +109,6 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
 
