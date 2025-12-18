@@ -54,7 +54,7 @@ public class AutoRedShoot6 extends LinearOpMode {
     @Override
     public void runOpMode() {
         autoThing.onRunOpMode(this, (Integer state, Double stateStartTime) -> {
-            // red shoot and aquire
+            // red shoot, aquire and shoot
             if (state == 0) {
                 // spin up shooter
                 telemetry.addLine("Shooter spin-up...");

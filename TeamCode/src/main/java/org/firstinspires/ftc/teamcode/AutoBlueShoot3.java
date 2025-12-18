@@ -99,7 +99,7 @@ public class AutoBlueShoot3 extends LinearOpMode {
             } else if (state == 4) {
                 telemetry.addLine("Drive 1...");
                 autoThing.driveController.driveFieldRelative(0.125, 0.0, 0);
-                if (getRuntime() - stateStartTime > 1.4) {
+                if (getRuntime() - stateStartTime > 1.25) {
                     state++;
 //                state = -1; // end
                     stateStartTime = getRuntime();
@@ -111,7 +111,7 @@ public class AutoBlueShoot3 extends LinearOpMode {
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
 
-                if (getRuntime() - stateStartTime > 1.4) {
+                if (getRuntime() - stateStartTime > 2.0) {
                     state++;
 //                state = -1; // end
                     stateStartTime = getRuntime();
