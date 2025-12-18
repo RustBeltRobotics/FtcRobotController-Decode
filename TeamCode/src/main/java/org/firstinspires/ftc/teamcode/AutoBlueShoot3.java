@@ -28,22 +28,8 @@
  */
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.rev.Rev9AxisImu;
-import com.qualcomm.hardware.rev.Rev9AxisImuOrientationOnRobot;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-
-import java.io.IOException;
-import java.util.Locale;
 
 /*
  * This OpMode illustrates how to program your robot to drive field relative.  This means
@@ -59,8 +45,8 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@Autonomous(name = "RobotAuto0L", group = "Robot")
-public class RobotAuto0L extends LinearOpMode {
+@Autonomous(name = "BlueShoot3", group = "Robot")
+public class AutoBlueShoot3 extends LinearOpMode {
     // This declares the four motors needed
 
     int state = 0; // set to 3 to start driving immediately
@@ -97,8 +83,6 @@ public class RobotAuto0L extends LinearOpMode {
                     stateStartTime = getRuntime();
                 }
             } else if (state == 2) {
-//            driveController.driveFieldRelativeAuto(0.0, 0.0, 0);
-//            driveController.stop();
 
                 if (getRuntime() - stateStartTime > 2.3) {
                     state++;
@@ -111,7 +95,7 @@ public class RobotAuto0L extends LinearOpMode {
                 autoThing.feeder.setPower(1.9);
                 autoThing.feeder2.setPower(-0.4);
 
-                if (getRuntime() - stateStartTime > 2.0) {
+                if (getRuntime() - stateStartTime > 3.0) {
 //                shooter.setPower(0); // don't disable shooter because...
                     autoThing.intake.setPower(0);
                     autoThing.feeder.setPower(0);
@@ -146,6 +130,7 @@ public class RobotAuto0L extends LinearOpMode {
                 if (getRuntime() - stateStartTime > 1.0) {
                     autoThing.intake.setPower(0);
                     autoThing.feeder.setPower(0);
+                    autoThing.shooter.setPower(0);
 
                     state++;
 //                state = -1; // end
