@@ -169,6 +169,15 @@ public class AutoRedShoot6 extends LinearOpMode {
                     state++;
                     stateStartTime = getRuntime();
                 }
+            } else if (state == 11) {
+                autoThing.driveController.driveFieldRelative(0.0, 0.60, 0);
+
+                if (getRuntime() - stateStartTime > 1.5) {
+                    autoThing.driveController.stop();
+
+                    state++;
+                    stateStartTime = getRuntime();
+                }
             }
 
 
