@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.lynx.commands.core.LynxSetMotorPIDFControlLoopCoefficientsCommand;
 import com.qualcomm.hardware.rev.Rev9AxisImu;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -51,18 +54,60 @@ public class DriveController {
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+//        ((DcMotorEx) frontLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients());
+
+        PIDFCoefficients currentCoefs = ((DcMotorEx) frontLeftDrive).getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION);
+        System.out.println(currentCoefs.toString());
+
+
+        // original:
+        //PIDFCoefficients coefs = new PIDFCoefficients(10.000000, 0.049988, 0.000000, 0.000000, LynxSetMotorPIDFControlLoopCoefficientsCommand.InternalMotorControlAlgorithm.LegacyPID.toExternal());
+
+        PIDFCoefficients coefs = new PIDFCoefficients(10.000000, 0.049988, 0.020000, 0.000000, LynxSetMotorPIDFControlLoopCoefficientsCommand.InternalMotorControlAlgorithm.LegacyPID.toExternal());
+
+
+        ((DcMotorEx) frontLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, coefs);
+        ((DcMotorEx) frontRightDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, coefs);
+        ((DcMotorEx) backLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, coefs);
+        ((DcMotorEx) backLeftDrive).setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, coefs);
+
+
     }
 
     void stop() {
-        frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         frontLeftDrive.setPower(0);
         frontRightDrive.setPower(0);
         backLeftDrive.setPower(0);
         backRightDrive.setPower(0);
+    }
+
+    public void driveFieldRelativeAuto(double forward, double right, double rotate) {
+        // First, convert direction being asked to drive to polar coordinates
+        double theta = Math.atan2(forward, right);
+        double r = Math.hypot(right, forward);
+
+        // TODO: Continuousalize this, or use quaternion maybe, because I think wrapping around is causing the issue that only appears half the time
+        angles = this.imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        double yaw_corrected = ((((0.0 - angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
+
+        double currentError = AngleUnit.normalizeRadians(rotate - yaw_corrected * (Math.PI/180));
+        drivingPID.setTarget(0);
+        rotate = drivingPID.loop(currentError);
+
+        theta = AngleUnit.normalizeRadians(theta - (yaw_corrected) * (3.141592653589/180));//AngleUnit.n
+
+        // Third, convert back to cartesian
+        double newForward = r * Math.sin(theta);
+        double newRight = r * Math.cos(theta);
+
+        // Finally, call the drive method with robot relative forward and right amounts
+        drive(newForward, newRight, rotate);
     }
 
     // This routine drives the robot field relative

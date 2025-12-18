@@ -241,11 +241,11 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
 
 
-        System.out.print("hashfuaehwoigfheraoiwghioe: ");
-        System.out.println(webInterface.getParameter("Kp_drive"));
-        System.out.println(driveController.drivingPID.Kp);
-        System.out.println(driveController.drivingPID.Ki);
-        System.out.println(driveController.drivingPID.Kd);
+//        System.out.print("hashfuaehwoigfheraoiwghioe: ");
+//        System.out.println(webInterface.getParameter("Kp_drive"));
+//        System.out.println(driveController.drivingPID.Kp);
+//        System.out.println(driveController.drivingPID.Ki);
+//        System.out.println(driveController.drivingPID.Kd);
 
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -270,10 +270,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("y", gamepad1.left_stick_y * 100.0);
             webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x * 100.0);
 
-//            webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-//            webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
-//            webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
-//            webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
 
             webTelemetryStreamer.sendData("speed_shooter", -((DcMotorEx) shooter).getVelocity(AngleUnit.DEGREES));
 
@@ -380,8 +380,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     }
 
     private double jsrc(double power) {
-        double a = 3.7;
-        double b = 0.43;
+//        double a = 3.7;
+//        double b = 0.43;
+        double a = 3.33;
+        double b = 0.35;
 
         return (Math.signum(power)*Math.pow(Math.abs(power), a) + (power * b)) / (1 + b);
     }

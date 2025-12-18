@@ -110,6 +110,9 @@ public class RobotAuto0L extends LinearOpMode {
         webInterface.addParameter("Ki_drive", 0.02);
         webInterface.addParameter("Kd_drive", 0.05);
 
+        webInterface.addParameter("dbsizec", 0.3);
+        webInterface.addParameter("dbdepthc", 0.3);
+
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
 
@@ -147,6 +150,9 @@ public class RobotAuto0L extends LinearOpMode {
         driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(1.0, 0.1, 0.3));
         driveController.init();
 
+        driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
+        driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
+
         updateDrivingPIDCoefs();
 
 
@@ -166,7 +172,7 @@ public class RobotAuto0L extends LinearOpMode {
 //        System.out.print("yaw after resetYaw: ");
 //        System.out.println(angles.firstAngle);
 
-        driveController.yawZero = angles.firstAngle;
+        driveController.yawZero = 0.0 - angles.firstAngle;
 
         int loopcounter = 0;
         while (opModeIsActive()) {
@@ -249,18 +255,28 @@ public class RobotAuto0L extends LinearOpMode {
         if (state == 0) {
             // spin up shooter
             telemetry.addLine("Shooter spin-up...");
-            shooter.setPower(-1.9);
+            shooter.setPower(-0.55);
 
-            if (getRuntime() - stateStartTime > 3.0) {
-                state = 1;
+//            driveController.driveFieldRelative(0.10, 0.0, 0);
+
+            if (getRuntime() - stateStartTime > 1.0) {
+                state++;
                 stateStartTime = getRuntime();
             }
         } else if (state == 1) {
+//            driveController.driveFieldRelativeAuto(0.0, 0.0, 0);
+            driveController.stop();
+
+            if (getRuntime() - stateStartTime > 2.0) {
+                state++;
+                stateStartTime = getRuntime();
+            }
+        } else if (state == 2) {
             // shoot balls
             telemetry.addLine("Shooting balls...");
             intake.setPower(1.9);
             feeder.setPower(1.9);
-            feeder2.setPower(-1.9);
+            feeder2.setPower(-0.4);
 
             if (getRuntime() - stateStartTime > 2.0) {
                 shooter.setPower(0);
@@ -268,25 +284,27 @@ public class RobotAuto0L extends LinearOpMode {
                 feeder.setPower(0);
                 feeder2.setPower(0);
 
-                state = 2;
-                stateStartTime = getRuntime();
-            }
-        } else if (state == 2) {
-            telemetry.addLine("Drive 1...");
-            driveController.driveFieldRelative(0.4, -0.0, 0);
-            if (getRuntime() - stateStartTime > 2.0) {
-                state = 3;
+//                state++;
+//                state = -1; // end
                 stateStartTime = getRuntime();
             }
         } else if (state == 3) {
-            telemetry.addLine("Drive 2...");
-            driveController.driveFieldRelative(0.0, -0.4, 0);
-            if (getRuntime() - stateStartTime > 3.0) {
-                state = 4;
+            telemetry.addLine("Drive 1...");
+            driveController.driveFieldRelativeAuto(0.0, -0.25, 0);
+            if (getRuntime() - stateStartTime > 2.0) {
+//                state++;
+                state = -1; // end
                 stateStartTime = getRuntime();
             }
         } else if (state == 4) {
-//            driveFieldRelative(0, 0, 0);
+            telemetry.addLine("Drive 2...");
+            driveController.driveFieldRelativeAuto(0.0, -0.4, 0);
+            if (getRuntime() - stateStartTime > 3.0) {
+                state++;
+                stateStartTime = getRuntime();
+            }
+        } else if (state == 5) {
+//            driveFieldRelativeAuto(0, 0, 0);
 
             driveController.stop();
         }
