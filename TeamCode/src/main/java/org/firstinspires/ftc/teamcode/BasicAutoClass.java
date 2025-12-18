@@ -47,9 +47,9 @@ public class BasicAutoClass {
 
     LinearOpMode opMode;
 
-    BiFunction<Integer, Double, Integer> opModeLoopFunction;
+    BiFunction<Integer, Double, AutoStateThing> opModeLoopFunction;
 
-    void onRunOpMode(LinearOpMode opMode, BiFunction<Integer, Double, Integer> opModeLoopFunction) {
+    void onRunOpMode(LinearOpMode opMode, BiFunction<Integer, Double, AutoStateThing> opModeLoopFunction) {
 
         this.opModeLoopFunction = opModeLoopFunction;
 
@@ -210,8 +210,10 @@ public class BasicAutoClass {
         // update PID coefs from webInterface
         updateDrivingPIDCoefs();
 
-        state = this.opModeLoopFunction.apply(state, stateStartTime);
+        AutoStateThing statething = this.opModeLoopFunction.apply(state, stateStartTime);
 
+        state = statething.state;
+        stateStartTime = statething.stateStartTime;
 
         opMode.telemetry.update();
     }
