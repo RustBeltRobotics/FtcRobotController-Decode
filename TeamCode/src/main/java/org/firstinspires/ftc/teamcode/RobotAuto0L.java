@@ -257,9 +257,9 @@ public class RobotAuto0L extends LinearOpMode {
             telemetry.addLine("Shooter spin-up...");
             shooter.setPower(-0.55);
 
-//            driveController.driveFieldRelative(0.10, 0.0, 0);
+            driveController.driveFieldRelative(2.0, 0.0, 0);
 
-            if (getRuntime() - stateStartTime > 1.0) {
+            if (getRuntime() - stateStartTime > 0.2) {
                 state++;
                 stateStartTime = getRuntime();
             }
@@ -267,7 +267,7 @@ public class RobotAuto0L extends LinearOpMode {
 //            driveController.driveFieldRelativeAuto(0.0, 0.0, 0);
             driveController.stop();
 
-            if (getRuntime() - stateStartTime > 2.0) {
+            if (getRuntime() - stateStartTime > 2.8) {
                 state++;
                 stateStartTime = getRuntime();
             }
@@ -285,7 +285,7 @@ public class RobotAuto0L extends LinearOpMode {
                 feeder2.setPower(0);
 
 //                state++;
-//                state = -1; // end
+                state = -1; // end
                 stateStartTime = getRuntime();
             }
         } else if (state == 3) {
