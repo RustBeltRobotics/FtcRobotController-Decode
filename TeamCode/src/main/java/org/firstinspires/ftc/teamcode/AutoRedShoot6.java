@@ -161,7 +161,7 @@ public class AutoRedShoot6 extends LinearOpMode {
                 autoThing.feeder2.setPower(-0.4);
 
                 if (getRuntime() - stateStartTime > 3.0) {
-//                shooter.setPower(0); // don't disable shooter because...
+                    autoThing.shooter.setPower(0);
                     autoThing.intake.setPower(0);
                     autoThing.feeder.setPower(0);
                     autoThing.feeder2.setPower(0);
