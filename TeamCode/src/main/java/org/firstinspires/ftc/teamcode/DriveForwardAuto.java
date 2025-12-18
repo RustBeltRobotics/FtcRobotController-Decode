@@ -45,86 +45,21 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@Autonomous(name = "RedShoot3", group = "Robot")
-public class AutoRedShoot3 extends LinearOpMode {
-
+@Autonomous(name = "DriveForwardAuto", group = "Robot")
+public class DriveForwardAuto extends LinearOpMode {
     BasicAutoClass autoThing = new BasicAutoClass();
 
 
     @Override
     public void runOpMode() {
         autoThing.onRunOpMode(this, (Integer state, Double stateStartTime) -> {
-            // red shoot and aquire
             if (state == 0) {
-                // spin up shooter
-                telemetry.addLine("Shooter spin-up...");
-                autoThing.shooter.setPower(-0.55);
+                telemetry.addLine("driving back...");
 
-                autoThing.driveController.driveFieldRelative(0.0, 0.0, 0);
+                autoThing.driveController.driveFieldRelative(-0.6, 0.0, 0);
 
-                if (getRuntime() - stateStartTime > 0.5) {
+                if (getRuntime() - stateStartTime > 0.3) {
                     state++;
-                    stateStartTime = getRuntime();
-                }
-            } else if (state == 1) {
-                autoThing.driveController.driveFieldRelative(0.25, 0.0, 0);
-
-                if (getRuntime() - stateStartTime > 0.2) {
-                    state++;
-                    stateStartTime = getRuntime();
-                }
-            } else if (state == 2) {
-
-                if (getRuntime() - stateStartTime > 2.3) {
-                    state++;
-                    stateStartTime = getRuntime();
-                }
-            } else if (state == 3) {
-                // shoot balls
-                telemetry.addLine("Shooting balls...");
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-                autoThing.feeder2.setPower(-0.4);
-
-                if (getRuntime() - stateStartTime > 3.0) {
-//                shooter.setPower(0); // don't disable shooter because...
-                    autoThing.intake.setPower(0);
-                    autoThing.feeder.setPower(0);
-                    autoThing.feeder2.setPower(0);
-
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
-                }
-            } else if (state == 4) {
-                telemetry.addLine("Drive 1...");
-                autoThing.driveController.driveFieldRelative(0.125, 0.0, 0);
-                if (getRuntime() - stateStartTime > 1.25) {
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
-                }
-            } else if (state == 5) {
-                telemetry.addLine("Drive 2...");
-                autoThing.driveController.driveFieldRelative(0.0, 0.125, 0);
-
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-
-                if (getRuntime() - stateStartTime > 2.0) {
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
-                }
-            } else if (state == 6) {
-
-                if (getRuntime() - stateStartTime > 1.0) {
-                    autoThing.intake.setPower(0);
-                    autoThing.feeder.setPower(0);
-                    autoThing.shooter.setPower(0);
-
-                    state++;
-//                state = -1; // end
                     stateStartTime = getRuntime();
                 }
             }

@@ -49,16 +49,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 public class AutoBlueShoot3 extends LinearOpMode {
     // This declares the four motors needed
 
-    int state = 0; // set to 3 to start driving immediately
-    double stateStartTime = 0;
-
-    boolean shooterToggle = false;
-    boolean lastGamepadX = false;
-
     BasicAutoClass autoThing = new BasicAutoClass();
-
-    // This declares the IMU needed to get the current direction the robot is facing
-//    IMU imu;
 
     @Override
     public void runOpMode() {
