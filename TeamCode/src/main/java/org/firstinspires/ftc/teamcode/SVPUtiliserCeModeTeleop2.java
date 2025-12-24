@@ -198,11 +198,9 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         while (opModeIsActive()) {
             loop2(loopcounter++);
         }
-
         try {
             webInterface.stop();
         } catch (IOException e) {}
-
         try {
             webTelemetryStreamer.stop();
         } catch (IOException e) {}
@@ -231,13 +229,11 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
         driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
 
-
 //        System.out.print("hashfuaehwoigfheraoiwghioe: ");
 //        System.out.println(webInterface.getParameter("Kp_drive"));
 //        System.out.println(driveController.drivingPID.Kp);
 //        System.out.println(driveController.drivingPID.Ki);
 //        System.out.println(driveController.drivingPID.Kd);
-
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -271,7 +267,6 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
             webTelemetryStreamer.sendData("speed_intake", -((DcMotorEx) intake).getVelocity(AngleUnit.DEGREES));
             webTelemetryStreamer.sendData("speed_feeder", -((DcMotorEx) feeder).getVelocity(AngleUnit.DEGREES));
             webTelemetryStreamer.sendData("speed_feeder2", ((DcMotorEx) feeder2).getVelocity(AngleUnit.DEGREES));
-
 
             webTelemetryStreamer.sendData("current_shooter", ((DcMotorEx) shooter).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_intake", ((DcMotorEx) intake).getCurrent(CurrentUnit.MILLIAMPS));
@@ -324,7 +319,6 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
             drive(y, x, rx);
         }
 
-
 //        if (gamepad1.left_bumper) {
 //            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 //        } else {
@@ -341,14 +335,11 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
 
         lastGamepadX = gamepad1.x;
 
-
         aToggler.update(gamepad1.a);
-
 
         double shooterPowerCoef = webInterface.getParameter("shooter_power"); // 0.80;
         double upperWheelPower = webInterface.getParameter("feeder2_power");  // 0.3
         double restPowerLevel = 1.9; // 1.9
-
 
         shooter.setPower(shooterToggle ? -shooterPowerCoef : (-invert_all_emergency * (((gamepad1.left_trigger * shooterPowerCoef - gamepad1.right_trigger * shooterPowerCoef) + (gamepad2.left_trigger * shooterPowerCoef - gamepad2.right_trigger * shooterPowerCoef))/2.0)));
 
@@ -360,11 +351,9 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         if (gamepad2.aWasPressed()) {
             webInterface.setParameter("shooter_power", 0.55);
         }
-
         if (gamepad2.bWasPressed()) {
             webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") + 0.05);
         }
-
         if (gamepad2.xWasPressed()) {
             webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") - 0.05);
         }
