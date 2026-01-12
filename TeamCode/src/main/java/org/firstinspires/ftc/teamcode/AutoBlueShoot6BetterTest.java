@@ -106,7 +106,7 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
                 }
             } else if (state == 5) {
                 telemetry.addLine("Drive 2...");
-                autoThing.driveController.driveFieldRelative(0.0, -0.125, -0.06);
+                autoThing.driveController.driveFieldRelative(0.0, -0.125, -0.04);
 
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
@@ -131,7 +131,7 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
 
             else if (state == 7) {
                 telemetry.addLine("Drive 3...");
-                autoThing.driveController.driveFieldRelative(0.0, 0.125, 0.06);
+                autoThing.driveController.driveFieldRelative(0.0, 0.125, 0.04);
 
 
                 if (getRuntime() - stateStartTime > 2.0) {
