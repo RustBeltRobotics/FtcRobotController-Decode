@@ -98,7 +98,7 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
                 }
             } else if (state == 4) {
                 telemetry.addLine("Drive 1...");
-                autoThing.driveController.driveFieldRelative(0.125, 0.0, 0.04);
+                autoThing.driveController.driveFieldRelative(0.14, 0.0, 0.04);
                 if (getRuntime() - stateStartTime > 1.25) {
                     state++;
 //                state = -1; // end
@@ -141,7 +141,7 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
                 }
             } else if (state == 8) {
                 telemetry.addLine("Drive 4...");
-                autoThing.driveController.driveFieldRelative(-0.125, 0.0, -0.04);
+                autoThing.driveController.driveFieldRelative(-0.14, 0.0, -0.06);
                 if (getRuntime() - stateStartTime > 1.25) {
                     state++;
                     //                state = -1; // end
