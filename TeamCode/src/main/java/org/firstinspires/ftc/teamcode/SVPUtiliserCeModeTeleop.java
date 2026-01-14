@@ -195,7 +195,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         waitForStart();
 
-        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(0.0, 0.0, 0.0));
+        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(0.02, 0.001, 0.001));//new PIDController(0.0, 0.0, 0.0));
         driveController.init();
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -311,8 +311,9 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         if (!gamepad1.right_bumper) {
-           driveController.driveFieldRelative(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
-//            driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+//           driveController.driveFieldRelative(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
+            // should attempt to correct for unintentional rotation
+            driveController.driveFieldRelativeAuto(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
         } else {
             telemetry.addLine("RIGHT BUMPER");
             drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
