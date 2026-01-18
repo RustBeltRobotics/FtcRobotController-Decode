@@ -311,9 +311,9 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         if (!gamepad1.right_bumper) {
-//           driveController.driveFieldRelative(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
+           driveController.driveFieldRelative(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
             // should attempt to correct for unintentional rotation
-            driveController.driveFieldRelativeAuto(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
+//            driveController.driveFieldRelativeAuto(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
         } else {
             telemetry.addLine("RIGHT BUMPER");
             drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
