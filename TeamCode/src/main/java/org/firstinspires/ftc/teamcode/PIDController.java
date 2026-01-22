@@ -54,6 +54,11 @@ public class PIDController {
         return output;
     }
 
+    public void setDeadbandStuff(double deadbandSizeCoef, double deadbandDepthCoef) {
+        this.deadbandSizeCoef = deadbandSizeCoef;
+        this.deadbandDepthCoef = deadbandDepthCoef;
+    }
+
     double calculateDeadband(double v) {
         double x = this.deadbandSizeCoef * v;
         return v * (1 - (4 * this.deadbandDepthCoef) * (1/(1+Math.pow(Math.E, x))) * (1-1/(1+Math.pow(Math.E, x))));

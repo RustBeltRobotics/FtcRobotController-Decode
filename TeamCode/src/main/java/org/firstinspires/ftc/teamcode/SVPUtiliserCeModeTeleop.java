@@ -236,8 +236,9 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
                 webInterface.getParameter("Kd_drive")
         );
 
-        driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
-        driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
+//        driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
+//        driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
+        driveController.drivingPID.setDeadbandStuff(webInterface.getParameter("dbsizec"), webInterface.getParameter("dbdepthc"));
 
 
 //        System.out.print("hashfuaehwoigfheraoiwghioe: ");
