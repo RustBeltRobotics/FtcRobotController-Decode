@@ -69,35 +69,90 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
     DcMotor backRightDrive;
 
     DcMotor shooter;
-
-
     DcMotor intake;
-
     DcMotor feeder;
-
     DcMotor feeder2;
 
     Rev9AxisImu imu;
 
     Orientation angles;
-
-
     WebTelemetryStreamer webTelemetryStreamer;
-
     WebInterface webInterface;
-
     boolean shooterToggle = false;
     boolean lastGamepadX = false;
-
     Toggler aToggler = new Toggler();
-
     DriveController driveController;
-
     double yawZero;
+    double lastFL = 0, lastFR = 0, lastBL = 0, lastBR = 0;
 
-
+    // Max power change per loop (tune this)
+    static final double MAX_DELTA = 0.06;  // start here (SKEW)
+    /*
+    0.02	Ultra smooth, very safe
+    0.04	Recommended start
+    0.06	Aggressive but controlled
+    0.08	May slip on strafes
+    0.10+	Basically no ramp
+    */
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
+    private double slew(double target, double current, double maxDelta) {
+        double delta = target - current;
+        if (delta > maxDelta) return current + maxDelta;
+        if (delta < -maxDelta) return current - maxDelta;
+        return target;
+    }
+    private double smartExpo(double x) {
+        double softExp = 3.0;   // center precision
+        double hardExp = 3;   // edge authority
+        double blendStart = 0.25;
+        double blendEnd   = 0.85;
+
+        double ax = Math.abs(x);
+
+        // Blend factor (0 → 1)
+        double t = (ax - blendStart) / (blendEnd - blendStart);
+        t = Math.max(0.0, Math.min(1.0, t));
+
+        // Smoothstep for slope continuity
+        t = t * t * (3 - 2 * t);
+
+        double exp = softExp * (1 - t) + hardExp * t;
+
+        return Math.signum(x) * Math.pow(ax, exp);
+
+        // More finesse near center:
+        // softExp ↑   (3.2 – 3.6)
+
+        // more punch at full stick
+        // hardExp ↓   (1.3 – 1.5)
+
+        // Earlier Agression
+        // blendStart ↓
+
+        //Later Aggression
+        //blendEnd ↑
+    }
+
+
+    private double jsrcOptimized(double x) {
+        double softExp = 3.2;   // center precision (like your 3.33)
+        double hardExp = 1.6;   // top-end control (prevents slip)
+
+        double blendStart = 0.20;
+        double blendEnd   = 0.85;
+
+        double ax = Math.abs(x);
+
+        // Smooth blend factor (smoothstep)
+        double t = (ax - blendStart) / (blendEnd - blendStart);
+        t = Math.max(0.0, Math.min(1.0, t));
+        t = t * t * (3 - 2 * t);
+
+        double exp = softExp * (1.0 - t) + hardExp * t;
+        return Math.signum(x) * Math.pow(ax, exp);
+    }
+
 
     @Override
     public void runOpMode() {
@@ -129,7 +184,6 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
 //        soundPlayer.play()
 //        SoundPlayer.getInstance().startPlaying();
 
-
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
@@ -149,7 +203,6 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
 
         feeder2.setDirection(DcMotor.Direction.FORWARD);
         feeder2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
 
         shooter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -171,8 +224,6 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
-
 //        imu = hardwareMap.get(IMU.class, "imu");
         // This needs to be changed to match the orientation on your robot
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
@@ -183,8 +234,6 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
 //        RevHubOrientationOnRobot orientationOnRobot = new
 //                RevHubOrientationOnRobot(logoDirection, usbDirection);
 //        imu.initialize(new IMU.Parameters(orientationOnRobot));
-
-
         waitForStart();
 
         driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(0.0, 0.0, 0.0));
@@ -205,11 +254,9 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
             webTelemetryStreamer.stop();
         } catch (IOException e) {}
     }
-
     private double avg(double a, double b) {
         return (a + b)/2;
     }
-
     private double boolToDoubleBecauseItWontCast(boolean input) {
         return input ? 1.0 : 0.0;
     }
@@ -225,11 +272,9 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
                 webInterface.getParameter("Ki_drive"),
                 webInterface.getParameter("Kd_drive")
         );
-
         driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
         driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
 
-//        System.out.print("hashfuaehwoigfheraoiwghioe: ");
 //        System.out.println(webInterface.getParameter("Kp_drive"));
 //        System.out.println(driveController.drivingPID.Kp);
 //        System.out.println(driveController.drivingPID.Ki);
@@ -299,42 +344,49 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
 
 
         /**** origional configuration of the joystick ******/
-        //double y  = jsrc(gamepad1.left_stick_y);     // forward/back
-        //double x  = jsrc(gamepad1.left_stick_x);     // strafe
-        //double rx = gamepad1.right_stick_x * 0.9;    // rotation (LINEAR, NO CURVE)
+        ////////////double y  = jsrc(gamepad1.left_stick_y);     // forward/back
+        ////////////double x  = jsrc(gamepad1.left_stick_x);     // strafe
+        //double rx = gamepad1.right_stick_x * 0.9;    // rotation ("LINEAR", NO CURVE)
         /************** other options for configurations of joysticks ************/
         //double rx = gamepad1.right_stick_x * 1.0;   //more snap
         //double rx = gamepad1.right_stick_x * 0.7;   // smoother turning
         //double rx = Math.signum(gamepad1.right_stick_x) * Math.pow(Math.abs(gamepad1.right_stick_x), 1.5); // little curve on rotation
         /*********** ercommended control configuration *******/
-        double y = expoMix(gamepad1.left_stick_y, 1.8, 0.25);
-        double x  = expoMix(gamepad1.left_stick_x, 1.8, 0.25);
-        double rx  = expoMix(gamepad1.right_stick_x, 2.8, 0.15);
+        //double y = expoMix(gamepad1.left_stick_y, 1.8, 0.25);
+        //double x  = expoMix(gamepad1.left_stick_x, 1.8, 0.25);
+        /////////double rx  = expoMix(gamepad1.right_stick_x, 2.8, 0.15);
+        /*************** Tucker Edit V3 for controller configuration***********/
+        //double y = expoMix(gamepad1.left_stick_y, 1.7, 0.30);
+        //double x = expoMix(gamepad1.left_stick_x, 1.7, 0.30);
+        //double rx = expoMix(gamepad1.right_stick_x, 2.2, 0.20);
+        /*************** Tucker Edit V4 for controller configuration***********/
+        double y  = smartExpo(-gamepad1.left_stick_y);
+        double x  = smartExpo(-gamepad1.left_stick_x);
+        double rx = smartExpo(gamepad1.right_stick_x) * 0.9;
+        /*************** Tucker Edit V for controller configuration***********/
+        //double y  = jsrcOptimized(gamepad1.left_stick_y);
+        //double x  = jsrcOptimized(gamepad1.left_stick_x);
+        //double rx = jsrcOptimized(gamepad1.right_stick_x) * 0.9;
+
+
+
 
 
         if (!gamepad1.right_bumper) {
-            driveController.driveFieldRelative(y, x, rx);
+            driveFieldRelative(y, x, rx);   // ← YOUR polar math
         } else {
             telemetry.addLine("RIGHT BUMPER");
-            drive(y, x, rx);
+            drive(y, x, rx);               // robot-relative
         }
 
-//        if (gamepad1.left_bumper) {
-//            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-//        } else {
-//            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-//        }
 
         if (gamepad1.x && !lastGamepadX) {
             shooterToggle = !shooterToggle;
         }
-
         if (gamepad1.dpad_up) {
             driveController.yawZero = 0.0 - angles.firstAngle;
         }
-
         lastGamepadX = gamepad1.x;
-
         aToggler.update(gamepad1.a);
 
         double shooterPowerCoef = webInterface.getParameter("shooter_power"); // 0.80;
@@ -347,7 +399,6 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         feeder.setPower(avg(gamepad2.right_stick_y * restPowerLevel,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * restPowerLevel));
         feeder2.setPower(avg(gamepad2.right_stick_x * upperWheelPower, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * upperWheelPower));
 
-
         if (gamepad2.aWasPressed()) {
             webInterface.setParameter("shooter_power", 0.55);
         }
@@ -357,23 +408,17 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         if (gamepad2.xWasPressed()) {
             webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") - 0.05);
         }
-
-
-
         telemetry.addData("shooter_power", webInterface.getParameter("shooter_power"));
 
 //        gamepad2.resetEdgeDetection();
         telemetry.update();
     }
-
     String formatAngle(AngleUnit angleUnit, double angle) {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
-
     String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
-
     private double expoMix(double input, double exponent, double linearWeight) {
         return (1.0 - linearWeight) * Math.signum(input) * Math.pow(Math.abs(input), exponent)
                 + linearWeight * input;
@@ -381,28 +426,189 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
     private double jsrc(double power) {
 //        double a = 3.7;
 //        double b = 0.43;
-        double a = 3.33;
-        double b = 0.35;
+        //double a = 3.33;
+        //double b = 0.35;
+        double a = 2.5;
+        double b = 0.1;
 
         return (Math.signum(power)*Math.pow(Math.abs(power), a) + (power * b)) / (1 + b);
     }
 
     // This routine drives the robot field relative
+    /***
+     private void driveFieldRelative(double forward, double right, double rotate) {
+
+        // Get robot heading in radians
+        double heading = Math.toRadians(angles.firstAngle) - yawZero;
+
+        // Rotate joystick vector by robot heading
+        double rotForward =  forward * Math.cos(heading) + right * Math.sin(heading);
+        double rotRight   = -forward * Math.sin(heading) + right * Math.cos(heading);
+
+        drive(rotForward, rotRight, rotate);
+    }***/
+    /***** working drive field relative code
     private void driveFieldRelative(double forward, double right, double rotate) {
-        double heading = Math.toRadians(
-                ((((0.0 - angles.firstAngle) - this.yawZero) + 180.0) % 360.0) - 180.0
-        );
 
-        double rotX = right * Math.cos(-heading) - forward * Math.sin(-heading);
-        double rotY = right * Math.sin(-heading) + forward * Math.cos(-heading);
+        double heading = imu.getRobotYawPitchRollAngles()
+                .getYaw(AngleUnit.RADIANS);
 
-        drive(rotY, rotX, rotate);
+        double cosA = Math.cos(heading);
+        double sinA = Math.sin(heading);
+
+        double robotForward = forward * cosA + right * sinA;
+        double robotRight   = -forward * sinA + right * cosA;
+
+        drive(robotForward, robotRight, rotate);
+    }***/
+    private void driveFieldRelative(double forward, double right, double rotate) {
+
+        // --- JOYSTICK VECTOR ---
+        double mag = Math.hypot(forward, right);
+        if (mag < 0.05) mag = 0.0;
+        mag = Math.min(mag, 1.0);   // 🔥 THIS FIXES DIAGONALS
+
+        double angle = Math.atan2(forward, right);
+
+        // --- APPLY EXPO TO MAGNITUDE ONLY ---
+        double shapedMag = smartExpo(mag);
+
+        // Rebuild vector
+        double f = shapedMag * Math.sin(angle);
+        double r = shapedMag * Math.cos(angle);
+
+        // --- FIELD RELATIVE ROTATION ---
+        double heading = imu.getRobotYawPitchRollAngles()
+                .getYaw(AngleUnit.RADIANS);
+
+        double cosA = Math.cos(heading);
+        double sinA = Math.sin(heading);
+
+        double robotForward =  -f * cosA + r * sinA;
+        double robotRight   = -f * sinA + r * cosA;
+
+        // Rotation expo is OK
+        rotate = smartExpo(rotate) * 0.85;
+
+        drive(robotForward, robotRight, rotate);
     }
+
+
+
 
 
     // Thanks to FTC16072 for sharing this code!!
     /********************Start origional drive code that works **************/
-    /*public void drive(double forward, double right, double rotate) {
+
+    /**************
+    public void drive(double forward, double right, double rotate) {
+
+        // --- JOYSTICK CIRCLE PRESERVATION ---
+        double transMag = Math.hypot(forward, right);
+        if (transMag > 1.0) {
+            forward /= transMag;
+            right   /= transMag;
+            transMag = 1.0;
+        }
+
+        // --- ROTATION RESERVATION (KEY IMPROVEMENT) ---
+        double rotMag = Math.abs(rotate);
+
+        // Smooth nonlinear reservation curve
+        double transScale = 1.0 - 0.6 * rotMag * rotMag;
+        forward *= transScale;
+        right   *= transScale;
+
+        // --- MECANUM MIX ---
+        double fl = forward + right + rotate;
+        double fr = forward - right - rotate;
+        double bl = forward - right + rotate;
+        double br = forward + right - rotate;
+
+        // --- FINAL SOFT SATURATION ---
+        double max = Math.max(
+                Math.max(Math.abs(fl), Math.abs(fr)),
+                Math.max(Math.abs(bl), Math.abs(br))
+        );
+
+        if (max > 1.0) {
+            double scale = 1.0 / max;
+            fl *= scale;
+            fr *= scale;
+            bl *= scale;
+            br *= scale;
+        }
+
+        // --- SLEW RATE LIMITING ---
+        fl = slew(fl, lastFL, MAX_DELTA);
+        fr = slew(fr, lastFR, MAX_DELTA);
+        bl = slew(bl, lastBL, MAX_DELTA);
+        br = slew(br, lastBR, MAX_DELTA);
+
+        lastFL = fl;
+        lastFR = fr;
+        lastBL = bl;
+        lastBR = br;
+
+        // --- OUTPUT ---
+        frontLeftDrive.setPower(fl);
+        frontRightDrive.setPower(fr);
+        backLeftDrive.setPower(bl);
+        backRightDrive.setPower(br);
+    }
+    *****************/
+
+//    public void drive(double forward, double right, double rotate) {
+//
+//        // Raw wheel powers
+//        double fl = forward + right + rotate;
+//        double fr = forward - right - rotate;
+//        double br = forward + right - rotate;
+//        double bl = forward - right + rotate;
+//
+//        // Normalize ONLY if needed
+//        double maxMag = Math.max(
+//                Math.max(Math.abs(fl), Math.abs(fr)),
+//                Math.max(Math.abs(bl), Math.abs(br))
+//        );
+//
+//        if (maxMag > 1.0) {
+//            fl /= maxMag;
+//            fr /= maxMag;
+//            br /= maxMag;
+//            bl /= maxMag;
+//        }
+//
+//        // Optional global speed limit
+//        double maxSpeed = 1.0;
+//        fl *= maxSpeed;
+//        fr *= maxSpeed;
+//        br *= maxSpeed;
+//        bl *= maxSpeed;
+//
+//        // Slew rate limiting (FINAL step)
+//        double flOut = slew(fl, lastFL, MAX_DELTA);
+//        double frOut = slew(fr, lastFR, MAX_DELTA);
+//        double blOut = slew(bl, lastBL, MAX_DELTA);
+//        double brOut = slew(br, lastBR, MAX_DELTA);
+//
+//        // Save for next loop
+//        lastFL = flOut;
+//        lastFR = frOut;
+//        lastBL = blOut;
+//        lastBR = brOut;
+//
+//        // Send to motors
+//        frontLeftDrive.setPower(flOut);
+//        frontRightDrive.setPower(frOut);
+//        backLeftDrive.setPower(blOut);
+//        backRightDrive.setPower(brOut);
+//    }
+    /******************************************************************/
+
+
+
+      public void drive(double forward, double right, double rotate) {
         // This calculates the power needed for each wheel based on the amount of forward,
         // strafe right, and rotate
         double frontLeftPower = forward + right + rotate;
@@ -410,21 +616,16 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         double backRightPower = forward + right - rotate;
         double backLeftPower = forward - right + rotate;
 
-        //double maxPower = 1.0;
+        double maxPower = 1.0;
         double maxSpeed = 1.0;  // make this slower for outreaches
 
         // This is needed to make sure we don't pass > 1.0 to any wheel
         // It allows us to keep all of the motors in proportion to what they should
         // be and not get clipped
-        double maxPower = Math.max(
-                Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)),
-                Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))
-        );
-
-        if (maxPower < 1.0) {
-            maxPower = 1.0;
-        }
-
+        maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
+        maxPower = Math.max(maxPower, Math.abs(frontRightPower));
+        maxPower = Math.max(maxPower, Math.abs(backRightPower));
+        maxPower = Math.max(maxPower, Math.abs(backLeftPower));
 
         // We multiply by maxSpeed so that it can be set lower for outreaches
         // When a young child is driving the robot, we may not want to allow full
@@ -434,24 +635,5 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         backLeftDrive.setPower(maxSpeed * (backLeftPower / maxPower));
         backRightDrive.setPower(maxSpeed * (backRightPower / maxPower));
     }
-    */ /********************end origional drive code that works **************/
-    /************new code from Tucker ****************/
-    public void drive(double forward, double right, double rotate) {
-
-        // Translation vector magnitude
-        double translationMag = Math.hypot(forward, right);
-
-        // Prevent rotation from overpowering translation
-        double rotScale = Math.max(1.0, translationMag + Math.abs(rotate));
-
-        double fl = (forward + right + rotate) / rotScale;
-        double fr = (forward - right - rotate) / rotScale;
-        double br = (forward + right - rotate) / rotScale;
-        double bl = (forward - right + rotate) / rotScale;
-
-        frontLeftDrive.setPower(fl);
-        frontRightDrive.setPower(fr);
-        backRightDrive.setPower(br);
-        backLeftDrive.setPower(bl);
-    }
 }
+
