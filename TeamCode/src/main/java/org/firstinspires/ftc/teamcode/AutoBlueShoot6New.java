@@ -190,7 +190,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
             } else if (state == 12) {
                 telemetry.addLine("Drive Away from goal towards 2nd row pickup");
                 autoThing.driveController.driveFieldRelative(-0.15, -0.5, 0); //(-0.2, -0.5, 0)
-                if (getRuntime() - stateStartTime > 1.15) {//(getRuntime() - stateStartTime > 2.0)
+                if (getRuntime() - stateStartTime > 1.05) {//(getRuntime() - stateStartTime > 2.0)
                     state++;
 //                state = -1; // end
                     stateStartTime = getRuntime();
@@ -219,9 +219,9 @@ public class AutoBlueShoot6New extends LinearOpMode {
 //                state = -1; // end
                     stateStartTime = getRuntime();
                 }
-            } /*else if (state == 14) {
+            } /* else if (state == 15) {
                 telemetry.addLine("Strafe to back to first row start position");
-                autoThing.driveController.driveFieldRelative(0.125, 0.125, 0); //(0.125, 0.125, 0)
+                autoThing.driveController.driveFieldRelative(0.0, 0.25, 0); //(0.125, 0.125, 0)
 
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
@@ -231,7 +231,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
 //                state = -1; // end
                     stateStartTime = getRuntime();
                 }
-            } else if (state == 15) {
+            } else if (state == 16) {
                 telemetry.addLine("Rotate back to face goal again.");
                 autoThing.driveController.driveFieldRelative(0.0, 0, -Math.toRadians(60));
 
