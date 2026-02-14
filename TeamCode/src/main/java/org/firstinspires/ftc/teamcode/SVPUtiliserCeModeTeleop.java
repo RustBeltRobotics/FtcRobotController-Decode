@@ -69,7 +69,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@TeleOp(name = "Robot: Field Relative Mecanum Drive", group = "Robot")
+@TeleOp(name = "Robot: Field Relative Mecanum Drive MAIN", group = "Robot")
 public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     // This declares the four motors needed
     DcMotor frontLeftDrive;
@@ -112,6 +112,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     public void runOpMode() {
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
+        System.out.println("MAIN ACTUAL OPCODE YAY");
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
@@ -132,7 +133,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webTelemetryStreamerThread.start(); // start server
 
         webInterface = new WebInterface(8885);
-        webInterface.addParameter("shooter_power", 0.55);
+        webInterface.addParameter("shooter_power", 0.551);
         webInterface.addParameter("feeder2_power", 0.4);
 
         webInterface.addParameter("Kp_drive", 0.01);
@@ -149,8 +150,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webInterface.addParameter("Kf_shooter", defaults_shooter.f);
 
 
-        webInterface.addParameter("dbsizec", 0.3);
-        webInterface.addParameter("dbdepthc", 0.3);
+//        webInterface.addParameter("dbsizec", 0.3);
+//        webInterface.addParameter("dbdepthc", 0.3);
 
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
@@ -250,7 +251,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
 //        driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
 //        driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
-        driveController.drivingPID.setDeadbandStuff(webInterface.getParameter("dbsizec"), webInterface.getParameter("dbdepthc"));
+
+//        driveController.drivingPID.setDeadbandStuff(webInterface.getParameter("dbsizec"), webInterface.getParameter("dbdepthc"));
 
         ((DcMotorEx) shooter).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
                 new PIDFCoefficients(
