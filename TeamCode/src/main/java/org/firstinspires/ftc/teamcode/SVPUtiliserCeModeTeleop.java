@@ -112,10 +112,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     public void runOpMode() {
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
-        System.out.println("MAIN ACTUAL OPCODE YAY");
-
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
+
+        System.out.println("MAIN ACTUAL OPCODE YAY A");
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");

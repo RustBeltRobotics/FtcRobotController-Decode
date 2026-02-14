@@ -72,9 +72,14 @@ public class WebInterface implements Runnable {
         return parameters.get(key);
     }
 
-    public void stop() throws IOException {
-        System.out.println("Stopping web interface...");
-        this.serverSocket.close(); // TODO: make this more graceful
+    public void stop() {
+        try {
+            System.out.println("Stopping web interface...");
+            this.serverSocket.close(); // TODO: make this more graceful
+        } catch (IOException e) {
+            System.out.print("Uh oh when stopping server (.stop()):");
+            System.out.println(e.getMessage());
+        }
     }
 
     private void listen(int port) throws IOException {
