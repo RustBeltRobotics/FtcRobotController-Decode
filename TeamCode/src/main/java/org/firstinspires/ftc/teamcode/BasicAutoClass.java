@@ -136,9 +136,9 @@ public class BasicAutoClass {
             loop2(loopcounter++);
         }
 
-        try {
+//        try {
             webInterface.stop();
-        } catch (IOException e) {}
+//        } catch (IOException e) {}
 
         try {
             webTelemetryStreamer.stop();
