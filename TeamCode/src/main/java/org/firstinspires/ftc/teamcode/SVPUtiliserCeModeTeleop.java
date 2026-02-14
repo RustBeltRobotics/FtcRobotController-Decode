@@ -144,6 +144,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         PIDFCoefficients defaults_shooter =((DcMotorEx) shooter).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        defaults_shooter.p = 90; // set default
+
         webInterface.addParameter("Kp_shooter", defaults_shooter.p);
         webInterface.addParameter("Ki_shooter", defaults_shooter.i);
         webInterface.addParameter("Kd_shooter", defaults_shooter.d);
