@@ -82,9 +82,14 @@ public class WebInterface implements Runnable {
         this.serverSocket = new ServerSocket(port);
 
         while (true) {
-            Socket client = this.serverSocket.accept();
-            handleConnection(client);
-            client.close();
+            try {
+                Socket client = this.serverSocket.accept();
+                handleConnection(client);
+                client.close();
+            } catch (Exception e) {
+                System.out.println("WebInterface connection error " + e.getMessage());
+                e.printStackTrace(); // Helpful to see what actually happened in logcat
+            }
         }
     }
 
