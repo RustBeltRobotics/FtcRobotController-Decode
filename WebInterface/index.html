@@ -56,15 +56,162 @@
         //     ).catch(e => console.log("Slider fetch failed (offline mode?):", e));
 
         // --- Graph Logic ---
-        const evs = new EventSource("http://" + HOST + ':' + PORT2, {timeout: 400, maxReconnects: 200}); // config not working?
-        evs.addEventListener("data", (ev) => {
-            const m = JSON.parse(ev.data);
-            console.log('data:', m);
-            applyUpdate(m);
-        });
+        // Channel mapping from ID to name
+        const channelIdToName = {};
+        
+        // Binary protocol parser
+        let binaryBuffer = new ArrayBuffer(0);
+        
+        function parseChannelMap(bytes) {
+            const view = new DataView(bytes);
+            let offset = 0;
+            
+            // Read marker byte
+            const marker = view.getUint8(offset);
+            offset += 1;
+            
+            if (marker !== 0xFF) {
+                console.error("Invalid channel map marker:", marker);
+                return;
+            }
+            
+            // Read number of channels
+            const numChannels = view.getUint16(offset, false); // big-endian
+            offset += 2;
+            
+            console.log("Received channel map with", numChannels, "channels");
+            
+            // Read each channel
+            for (let i = 0; i < numChannels; i++) {
+                const nameLength = view.getUint16(offset, false);
+                offset += 2;
+                
+                // Read channel name
+                const nameBytes = new Uint8Array(bytes, offset, nameLength);
+                const name = new TextDecoder().decode(nameBytes);
+                offset += nameLength;
+                
+                // Read channel ID
+                const channelId = view.getUint32(offset, false);
+                offset += 4;
+                
+                channelIdToName[channelId] = name;
+                console.log(`Channel ${channelId}: ${name}`);
+            }
+        }
+        
+        function parseDataMessage(bytes) {
+            const view = new DataView(bytes);
+            let offset = 0;
+            
+            // Read length
+            const length = view.getUint16(offset, false);
+            offset += 2;
+            
+            // Read channel ID
+            const channelId = view.getInt32(offset, false);
+            offset += 4;
+            
+            // Read value
+            const value = view.getFloat64(offset, false);
+            offset += 8;
+            
+            if (!(channelId in channelIdToName)) {
+                console.warn("Received data for unknown channel ID:", channelId);
+                return null;
+            }
+            
+            const channelName = channelIdToName[channelId];
+            return { [channelName]: value };
+        }
+        
+        function processBinaryData(newData) {
+            // Append new data to buffer
+            const oldBuffer = binaryBuffer;
+            binaryBuffer = new ArrayBuffer(oldBuffer.byteLength + newData.byteLength);
+            const combined = new Uint8Array(binaryBuffer);
+            combined.set(new Uint8Array(oldBuffer), 0);
+            combined.set(new Uint8Array(newData), oldBuffer.byteLength);
+            
+            // Process complete messages
+            let offset = 0;
+            const bytes = new Uint8Array(binaryBuffer);
+            
+            while (offset < bytes.length) {
+                // Check if this is a channel map message
+                if (bytes[offset] === 0xFF) {
+                    // Need at least marker + numChannels
+                    if (offset + 3 > bytes.length) break;
+                    
+                    const view = new DataView(binaryBuffer, offset);
+                    const numChannels = view.getUint16(1, false);
+                    
+                    // Calculate expected size
+                    let expectedSize = 3; // marker + numChannels
+                    let tempOffset = 3;
+                    for (let i = 0; i < numChannels; i++) {
+                        if (tempOffset + 2 > bytes.length) break;
+                        const nameLength = view.getUint16(tempOffset, false);
+                        tempOffset += 2 + nameLength + 4;
+                    }
+                    
+                    if (tempOffset > bytes.length) break;
+                    
+                    // Parse the channel map
+                    parseChannelMap(binaryBuffer.slice(offset, tempOffset));
+                    offset = tempOffset;
+                } else {
+                    // Regular data message: uint16 length + data
+                    if (offset + 2 > bytes.length) break;
+                    
+                    const view = new DataView(binaryBuffer, offset);
+                    const length = view.getUint16(0, false);
+                    const totalLength = 2 + length;
+                    
+                    if (offset + totalLength > bytes.length) break;
+                    
+                    // Parse the data message
+                    const dataMessage = parseDataMessage(binaryBuffer.slice(offset, offset + totalLength));
+                    if (dataMessage) {
+                        applyUpdate(dataMessage);
+                    }
+                    offset += totalLength;
+                }
+            }
+            
+            // Keep remaining bytes in buffer
+            if (offset > 0) {
+                binaryBuffer = binaryBuffer.slice(offset);
+            }
+        }
 
-        // If offline, uncomment this to test random data:
-        // setInterval(() => applyUpdate({ "Motor 1": Math.sin(Date.now()/500) * 10, "Servo": Math.cos(Date.now()/1000) * 5 }), 50);
+        // WebSocket-like approach using fetch with ReadableStream
+        function connectToBinaryStream() {
+            fetch("http://" + HOST + ':' + PORT2)
+                .then(response => response.body.getReader())
+                .then(reader => {
+                    function read() {
+                        reader.read().then(({ done, value }) => {
+                            if (done) {
+                                console.log("Binary stream ended");
+                                return;
+                            }
+                            processBinaryData(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
+                            read();
+                        }).catch(e => {
+                            console.error("Error reading stream:", e);
+                        });
+                    }
+                    read();
+                })
+                .catch(e => {
+                    console.error("Stream connection failed (offline mode?):", e);
+                    // If offline, uncomment this to test random data:
+                    // setInterval(() => applyUpdate({ "Motor 1": Math.sin(Date.now()/500) * 10, "Servo": Math.cos(Date.now()/1000) * 5 }), 50);
+                });
+        }
+        
+        connectToBinaryStream();
 
         const series = {};
         const fullHistory = [];
@@ -121,7 +268,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // red line if not connected
-            if (evs.readyState != evs.OPEN) {
+            if (Object.keys(channelIdToName).length === 0) {
                 ctx.strokeStyle = "red";
                 ctx.lineWidth = 4;
                 ctx.strokeRect(0, 0, canvas.width, canvas.height)
