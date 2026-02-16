@@ -43,6 +43,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -115,6 +116,17 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
 
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
+        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
+
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        feeder = hardwareMap.get(DcMotor.class, "feeder");
+        feeder2 = hardwareMap.get(DcMotor.class, "feeder2");
+
         webTelemetryStreamer = new WebTelemetryStreamer(8886);
         Thread webTelemetryStreamerThread = new Thread(webTelemetryStreamer);
         webTelemetryStreamerThread.start(); // start server
@@ -127,6 +139,16 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webInterface.addParameter("Ki_drive", 0.00);
         webInterface.addParameter("Kd_drive", 0.00);
 
+
+
+        PIDFCoefficients defaults_shooter =((DcMotorEx) shooter).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        webInterface.addParameter("Kp_shooter", defaults_shooter.p);
+        webInterface.addParameter("Ki_shooter", defaults_shooter.i);
+        webInterface.addParameter("Kd_shooter", defaults_shooter.d);
+        webInterface.addParameter("Kf_shooter", defaults_shooter.f);
+
+
         webInterface.addParameter("dbsizec", 0.3);
         webInterface.addParameter("dbdepthc", 0.3);
 
@@ -138,16 +160,6 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        SoundPlayer.getInstance().startPlaying();
 
 
-        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
-        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
-        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
-        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
-
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        feeder = hardwareMap.get(DcMotor.class, "feeder");
-        feeder2 = hardwareMap.get(DcMotor.class, "feeder2");
 
         intake.setDirection(DcMotor.Direction.FORWARD);
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -240,6 +252,14 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
         driveController.drivingPID.setDeadbandStuff(webInterface.getParameter("dbsizec"), webInterface.getParameter("dbdepthc"));
 
+        ((DcMotorEx) shooter).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(
+                        webInterface.getParameter("Kp_shooter"),
+                        webInterface.getParameter("Ki_shooter"),
+                        webInterface.getParameter("Kd_shooter"),
+                        webInterface.getParameter("Kf_shooter")
+                )
+        );
 
 //        System.out.print("hashfuaehwoigfheraoiwghioe: ");
 //        System.out.println(webInterface.getParameter("Kp_drive"));
@@ -312,6 +332,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         if (!gamepad1.right_bumper) {
+            // working:
            driveController.driveFieldRelative(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
             // should attempt to correct for unintentional rotation
 //            driveController.driveFieldRelativeAuto(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));

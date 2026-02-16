@@ -82,9 +82,14 @@ public class WebInterface implements Runnable {
         this.serverSocket = new ServerSocket(port);
 
         while (true) {
-            Socket client = this.serverSocket.accept();
-            handleConnection(client);
-            client.close();
+            try {
+                Socket client = this.serverSocket.accept();
+                handleConnection(client);
+                client.close();
+            } catch (Exception e) {
+                System.out.println("WebInterface connection error " + e.getMessage());
+                e.printStackTrace(); // Helpful to see what actually happened in logcat
+            }
         }
     }
 
@@ -155,6 +160,9 @@ public class WebInterface implements Runnable {
                     return "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: text/plain\r\n\r\n" + getSliderJSON();
                 case "/setValue":
                     String[] split = search.split(":");
+                    if (split.length < 2) {
+                        return "HTTP/1.1 400 Bad Request\r\n\r\n";
+                    }
                     parameters.put(split[0], Double.parseDouble(split[1]));
                     System.out.print("Set parameter ");
                     System.out.print(split[0]);
