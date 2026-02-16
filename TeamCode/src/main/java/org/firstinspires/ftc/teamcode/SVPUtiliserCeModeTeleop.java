@@ -69,7 +69,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@TeleOp(name = "Robot: Field Relative Mecanum Drive MAIN", group = "Robot")
+@TeleOp(name = "Robot: Field Relative Mecanum Drive MAIN YAY", group = "Robot")
 public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     // This declares the four motors needed
     DcMotor frontLeftDrive;
