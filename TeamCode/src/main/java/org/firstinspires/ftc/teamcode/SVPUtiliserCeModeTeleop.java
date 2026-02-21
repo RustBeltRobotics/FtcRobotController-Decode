@@ -69,7 +69,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@TeleOp(name = "Robot: Field Relative Mecanum Drive", group = "Robot")
+@TeleOp(name = "Robot: Field Relative Mecanum Drive MAIN YAY", group = "Robot")
 public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     // This declares the four motors needed
     DcMotor frontLeftDrive;
@@ -112,9 +112,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     public void runOpMode() {
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
-
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
+
+        System.out.println("MAIN ACTUAL OPCODE YAY A");
 
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
@@ -132,7 +133,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webTelemetryStreamerThread.start(); // start server
 
         webInterface = new WebInterface(8885);
-        webInterface.addParameter("shooter_power", 0.55);
+        webInterface.addParameter("shooter_power", 0.551);
         webInterface.addParameter("feeder2_power", 0.4);
 
         webInterface.addParameter("Kp_drive", 0.01);
@@ -143,14 +144,16 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         PIDFCoefficients defaults_shooter =((DcMotorEx) shooter).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        defaults_shooter.p = 90; // set default
+
         webInterface.addParameter("Kp_shooter", defaults_shooter.p);
         webInterface.addParameter("Ki_shooter", defaults_shooter.i);
         webInterface.addParameter("Kd_shooter", defaults_shooter.d);
         webInterface.addParameter("Kf_shooter", defaults_shooter.f);
 
 
-        webInterface.addParameter("dbsizec", 0.3);
-        webInterface.addParameter("dbdepthc", 0.3);
+//        webInterface.addParameter("dbsizec", 0.3);
+//        webInterface.addParameter("dbdepthc", 0.3);
 
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
@@ -219,9 +222,9 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             loop2(loopcounter++);
         }
 
-        try {
+//        try {
             webInterface.stop();
-        } catch (IOException e) {}
+//        } catch (IOException e) {}
 
         try {
             webTelemetryStreamer.stop();
@@ -250,7 +253,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
 //        driveController.drivingPID.deadbandSizeCoef = webInterface.getParameter("dbsizec");
 //        driveController.drivingPID.deadbandDepthCoef = webInterface.getParameter("dbdepthc");
-        driveController.drivingPID.setDeadbandStuff(webInterface.getParameter("dbsizec"), webInterface.getParameter("dbdepthc"));
+
+//        driveController.drivingPID.setDeadbandStuff(webInterface.getParameter("dbsizec"), webInterface.getParameter("dbdepthc"));
 
         ((DcMotorEx) shooter).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
                 new PIDFCoefficients(
