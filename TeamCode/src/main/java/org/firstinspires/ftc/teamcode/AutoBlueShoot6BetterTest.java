@@ -96,17 +96,17 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
 //                state = -1; // end
                     stateStartTime = getRuntime();
                 }
-            } else if (state == 4) {
+            } else if (state == 4) {   //Start moving after 3 preloaded pringles shot
                 telemetry.addLine("Drive 1...");
-                autoThing.driveController.driveFieldRelative(0.19, 0.0, 0.04);
+                autoThing.driveController.driveFieldRelative(0.2/*0.21**0.19*/, 0.0, 0.1/*0.12**0.08*/);
                 if (getRuntime() - stateStartTime > 1.25) {
                     state++;
 //                state = -1; // end
                     stateStartTime = getRuntime();
                 }
-            } else if (state == 5) {
+            } else if (state == 5) {    //Start moving left
                 telemetry.addLine("Drive 2...");
-                autoThing.driveController.driveFieldRelative(0.0, -0.19, 0.0);
+                autoThing.driveController.driveFieldRelative(-0.5/*0.5**0.0*/, -0.19, 0.0);
 
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
@@ -117,7 +117,7 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
                     stateStartTime = getRuntime();
                 }
 
-            } else if (state == 6) {
+            }/* else if (state == 6) {
 
                 if (getRuntime() - stateStartTime > 1.0) {
                     autoThing.intake.setPower(0);
@@ -131,7 +131,7 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
 
             else if (state == 7) {
                 telemetry.addLine("Drive 3...");
-                autoThing.driveController.driveFieldRelative(0.0, 0.19, 0.0);
+                autoThing.driveController.driveFieldRelative(0.0, 0.30/*0.45**0.19*//*, 0.06);
 
 
                 if (getRuntime() - stateStartTime > 2.0) {
@@ -179,7 +179,8 @@ public class AutoBlueShoot6BetterTest extends LinearOpMode {
                     state++;
                     stateStartTime = getRuntime();
                 }
-            }
+
+            }*/
 
 
 
