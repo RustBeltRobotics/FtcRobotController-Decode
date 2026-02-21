@@ -75,31 +75,38 @@ public class WebTelemetryStreamer implements Runnable {
     private void listen(int port) throws IOException {
         this.serverSocket = new ServerSocket(port);
 
-        while (true) {
-            waitForClient();
-            messageQueue.clear();
+        this.serverSocket.setSoTimeout(2000);
 
-            while (currentClient.isConnected()) {
-                try {
-                    byte[] message = messageQueue.poll();
-                    if (message != null) {
-                        try {
-                            this.currentClientOut.write(message);
-                            // this.currentClientOut.flush();
-                        } catch (IOException e) {
-                            System.out.print("[wts] IOException: ");
-                            System.out.println(e.getMessage());
-                            break;
+        try {
+            while (true) {
+                waitForClient();
+                messageQueue.clear();
+
+                while (currentClient.isConnected()) {
+                    try {
+                        byte[] message = messageQueue.poll();
+                        if (message != null) {
+                            try {
+                                this.currentClientOut.write(message);
+                                // this.currentClientOut.flush();
+                            } catch (IOException e) {
+                                System.out.print("[wts] IOException: ");
+                                System.out.println(e.getMessage());
+                                break;
+                            }
                         }
+                        Thread.sleep(3); // bad, use blocking queue instead
+                    } catch (InterruptedException e) {
+                        System.out.println("[wts] InterruptedException");
                     }
-                    Thread.sleep(3); // bad, use blocking queue instead
-                } catch (InterruptedException e) {
-                    System.out.println("[wts] InterruptedException");
                 }
-            }
 
-            System.out.println("Web telemetry streamer: Client disconnected !");
-            channelMapSent = false;
+                System.out.println("Web telemetry streamer: Client disconnected !");
+                channelMapSent = false;
+            }
+        } catch (Exception e) {
+            System.out.println("[wts] Exception: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
