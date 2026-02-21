@@ -50,148 +50,90 @@ public class AutoBlueShoot6New extends LinearOpMode {
 
     BasicAutoClass autoThing = new BasicAutoClass();
 
-
     @Override
     public void runOpMode() {
         autoThing.onRunOpMode(this, (Integer state, Double stateStartTime) -> {
             // blue shoot, aquire and shoot
             if (state == 0) {
-                // spin up shooter
                 telemetry.addLine("Shooter spin-up...");
                 autoThing.shooter.setPower(-0.55);
-
                 autoThing.driveController.driveFieldRelative(0.0, 0.0, 0);
-
-                if (getRuntime() - stateStartTime > 0.5) {
-                    state++;
-                    stateStartTime = getRuntime();
+                if (getRuntime() - stateStartTime > 0.5) {state++;stateStartTime = getRuntime();
                 }
             } else if (state == 1) {
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0);
-
-                if (getRuntime() - stateStartTime > 0.2) {
-                    state++;
-                    stateStartTime = getRuntime();
+                if (getRuntime() - stateStartTime > 0.2) { state++; stateStartTime = getRuntime();
                 }
             } else if (state == 2) {
-
-                if (getRuntime() - stateStartTime > 2.3) {
-                    state++;
-                    stateStartTime = getRuntime();
+                if (getRuntime() - stateStartTime > 2.3) {state++;stateStartTime = getRuntime();
                 }
             } else if (state == 3) {
-                // shoot balls
                 telemetry.addLine("Shooting balls...");
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
                 autoThing.feeder2.setPower(-0.4);
-
                 if (getRuntime() - stateStartTime > 3.0) {
-//                shooter.setPower(0); // don't disable shooter because...
                     autoThing.intake.setPower(0);
                     autoThing.feeder.setPower(0);
                     autoThing.feeder2.setPower(0);
-
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 4) {
                 telemetry.addLine("Drive Away from goal towards first row pickup spot");
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0); //(0.125, 0.0, 0)
                 if (getRuntime() - stateStartTime > 0.9) {//(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 5) {
                 telemetry.addLine("Drive Away from goal towards 1nd row pickup posiiton 2");
                 autoThing.driveController.driveFieldRelative(0.22, -0.3, 0); //(-0.15, -0.5, 0) //tried to move back more and left less.
                 if (getRuntime() - stateStartTime > 0.25) {//(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 6) {
                 telemetry.addLine("Rotate to pickup balls");
                 autoThing.driveController.driveFieldRelative(0.0, 0, Math.toRadians(60));
-
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-
                 if (getRuntime() - stateStartTime > 0.32) { //0.35
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++; stateStartTime = getRuntime();
                 }
             } else if (state == 7) {
                 telemetry.addLine("Strafe to pickup first row balls");
-                autoThing.driveController.driveFieldRelative(-0.125, -0.125, 0); //(-0.125, -0.125, 0)
-
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
-
+                autoThing.driveController.driveFieldRelative(-0.125, -0.125, 0); //(-0.125, -0.125, 0)
                 if (getRuntime() - stateStartTime > 1.95) { //(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 8) {
                 telemetry.addLine("Strafe to back to first row start position");
+                autoThing.intake.setPower(0);
+                autoThing.feeder.setPower(0);
                 autoThing.driveController.driveFieldRelative(0.125, 0.125, 0); //(0.125, 0.125, 0)
-
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-
                 if (getRuntime() - stateStartTime > 1.95) { //(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 9) {
                 telemetry.addLine("Rotate back to face goal again.");
                 autoThing.driveController.driveFieldRelative(0.0, 0, -Math.toRadians(60));
-
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-
                 if (getRuntime() - stateStartTime > 0.26) { //0.25)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             }
             else if (state == 10) {
                 telemetry.addLine("Drive Away from goal towards 2nd row pickup");
                 autoThing.driveController.driveFieldRelative(-0.22, 0.3, 0); //(-0.15, -0.5, 0) //tried to move back more and left less.
                 if (getRuntime() - stateStartTime > 0.25) {//(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             }else if (state == 11) {
                 telemetry.addLine("Drive towards goal");
                 autoThing.driveController.driveFieldRelative(-0.25, 0.0, 0); //(0.125, 0.0, 0)
                 if (getRuntime() - stateStartTime > 1.2) {//(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++; stateStartTime = getRuntime();
                 }
-            }/*else if (state == 12) {
-                telemetry.addLine("Drive into goal and prepare to shoot");
-                autoThing.driveController.driveFieldRelative(-0.25, 0.0, 0); //(-0.125, 0.0, 0)
-                if (getRuntime() - stateStartTime > 1.2) { //(getRuntime() - stateStartTime > 1.3)  send farther to make sure the robot is centered?
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
-                }
-            } */
-            else if (state == 12) {
+            }else if (state == 12) {
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0);
-
-                if (getRuntime() - stateStartTime > 0.2) {
-                    state++;
-                    stateStartTime = getRuntime();
+                if (getRuntime() - stateStartTime > 0.2) { state++;stateStartTime = getRuntime();
                 }
             } else if (state == 13) {
                 // shoot balls
@@ -199,16 +141,11 @@ public class AutoBlueShoot6New extends LinearOpMode {
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
                 autoThing.feeder2.setPower(-0.4);
-
                 if (getRuntime() - stateStartTime > 3.5) {
-//                shooter.setPower(0); // don't disable shooter because...
                     autoThing.intake.setPower(0);
                     autoThing.feeder.setPower(0);
                     autoThing.feeder2.setPower(0);
-
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++; stateStartTime = getRuntime();
                 }
             }
             /***********************start of 2nd row pickup  *************************************************************/
@@ -216,114 +153,74 @@ public class AutoBlueShoot6New extends LinearOpMode {
                 telemetry.addLine("Drive Away from goal towards first row pickup spot");
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0); //(0.125, 0.0, 0)
                 if (getRuntime() - stateStartTime > 0.9) {//(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 15) {
                 telemetry.addLine("Drive Away from goal towards 2nd row pickup");
                 autoThing.driveController.driveFieldRelative(0.22, -0.3, 0); //(-0.15, -0.5, 0) //tried to move back more and left less.
                 if (getRuntime() - stateStartTime > 1.25) {//(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 16) {
                 telemetry.addLine("Rotate to pickup balls");
                 autoThing.driveController.driveFieldRelative(0.0, 0, Math.toRadians(60));
-
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-
-                if (getRuntime() - stateStartTime > 0.35) {
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                if (getRuntime() - stateStartTime > 0.35) {state++;stateStartTime = getRuntime();
                 }
             } else if (state == 17) {
                 telemetry.addLine("Strafe to pickup first row balls");
                 autoThing.driveController.driveFieldRelative(-0.125, -0.125, 0); //(-0.125, -0.125, 0)
-
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
-
                 if (getRuntime() - stateStartTime > 1.3) { //(getRuntime() - stateStartTime > 0.8)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 18) {
-                telemetry.addLine("Strafe to pickup first row balls");
+                telemetry.addLine("Strafe back to initial pickup position first row balls");
                 autoThing.driveController.driveFieldRelative(0.125, 0.125, 0); //(-0.125, -0.125, 0)
-
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-
+                autoThing.intake.setPower(0);
+                autoThing.feeder.setPower(0);
                 if (getRuntime() - stateStartTime > 0.8) { //(getRuntime() - stateStartTime > 2.0)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 19) {
                 telemetry.addLine("Rotate back to face goal again.");
                 autoThing.driveController.driveFieldRelative(0.0, 0, -Math.toRadians(60));
-
-                autoThing.intake.setPower(1.9);
-                autoThing.feeder.setPower(1.9);
-
                 if (getRuntime() - stateStartTime > 0.35) {
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++; stateStartTime = getRuntime();
                 }
             } else if (state == 20) {
                 telemetry.addLine("Drive towards 2nd row pickup");
                 autoThing.driveController.driveFieldRelative(-0.22, 0.33, 0); //(-0.2, -0.5, 0)
                 if (getRuntime() - stateStartTime > 1.75) {//(getRuntime() - stateStartTime > 1.5)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 21) {
                 telemetry.addLine("Drive into goal and prepare to shoot");
                 autoThing.driveController.driveFieldRelative(-0.25, 0.0, 0); //(-0.125, 0.0, 0)
                 if (getRuntime() - stateStartTime > 0.9) { //(getRuntime() - stateStartTime > 2.5)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 22) {
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0);
-
-                if (getRuntime() - stateStartTime > 0.2) {
-                    state++;
-                    stateStartTime = getRuntime();
+                if (getRuntime() - stateStartTime > 0.2) { state++;stateStartTime = getRuntime();
                 }
             }
             else if (state == 23) {
-                // shoot balls
                 telemetry.addLine("Shooting balls...");
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
                 autoThing.feeder2.setPower(-0.4);
-
                 if (getRuntime() - stateStartTime > 4.5) {
-//                shooter.setPower(0); // don't disable shooter because...
                     autoThing.intake.setPower(0);
                     autoThing.feeder.setPower(0);
                     autoThing.feeder2.setPower(0);
-
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             } else if (state == 24) {
-                telemetry.addLine("Drive towards 2nd row pickup");
+                telemetry.addLine("drive off of start line");
                 autoThing.driveController.driveFieldRelative(0.22, -0.33, 0); //(-0.2, -0.5, 0)
                 if (getRuntime() - stateStartTime > 2.0) {//(getRuntime() - stateStartTime > 1.5)
-                    state++;
-//                state = -1; // end
-                    stateStartTime = getRuntime();
+                    state++;stateStartTime = getRuntime();
                 }
             }/* else if (state == 18) {
                 // shoot balls
