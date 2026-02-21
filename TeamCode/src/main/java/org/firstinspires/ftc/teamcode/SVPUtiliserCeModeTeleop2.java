@@ -128,9 +128,11 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
             loop2(loopcounter++);
         }
 
-        try {
-            webInterface.stop();
-        } catch (IOException e) {}
+//        try {
+//            webInterface.stop();
+//        } catch (IOException e) {
+//
+//        }
 
         try {
             webTelemetryStreamer.stop();

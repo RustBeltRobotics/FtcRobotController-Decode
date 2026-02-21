@@ -61,10 +61,12 @@ public class AutoBlueShoot6New extends LinearOpMode {
                 if (getRuntime() - stateStartTime > 0.5) {state++;stateStartTime = getRuntime();
                 }
             } else if (state == 1) {
+                telemetry.addLine("Drive backwards off of goal position");
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0);
                 if (getRuntime() - stateStartTime > 0.2) { state++; stateStartTime = getRuntime();
                 }
             } else if (state == 2) {
+                telemetry.addLine("Wait for shooter to spin up");
                 if (getRuntime() - stateStartTime > 2.3) {state++;stateStartTime = getRuntime();
                 }
             } else if (state == 3) {
@@ -120,7 +122,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
                 }
             }
             else if (state == 10) {
-                telemetry.addLine("Drive Away from goal towards 2nd row pickup");
+                telemetry.addLine("Drive Away from first row pickup towards 2nd row pickup");
                 autoThing.driveController.driveFieldRelative(-0.22, 0.3, 0); //(-0.15, -0.5, 0) //tried to move back more and left less.
                 if (getRuntime() - stateStartTime > 0.25) {//(getRuntime() - stateStartTime > 2.0)
                     state++;stateStartTime = getRuntime();
@@ -132,11 +134,11 @@ public class AutoBlueShoot6New extends LinearOpMode {
                     state++; stateStartTime = getRuntime();
                 }
             }else if (state == 12) {
+                telemetry.addLine("drive away from goal slightly");
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0);
                 if (getRuntime() - stateStartTime > 0.2) { state++;stateStartTime = getRuntime();
                 }
             } else if (state == 13) {
-                // shoot balls
                 telemetry.addLine("Shooting balls...");
                 autoThing.intake.setPower(1.9);
                 autoThing.feeder.setPower(1.9);
@@ -189,7 +191,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
                     state++; stateStartTime = getRuntime();
                 }
             } else if (state == 20) {
-                telemetry.addLine("Drive towards 2nd row pickup");
+                telemetry.addLine("Drive Away from first row pickup towards 2nd row pickup");
                 autoThing.driveController.driveFieldRelative(-0.22, 0.33, 0); //(-0.2, -0.5, 0)
                 if (getRuntime() - stateStartTime > 1.75) {//(getRuntime() - stateStartTime > 1.5)
                     state++;stateStartTime = getRuntime();
@@ -201,6 +203,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
                     state++;stateStartTime = getRuntime();
                 }
             } else if (state == 22) {
+                telemetry.addLine("drive away from goal slightly");
                 autoThing.driveController.driveFieldRelative(0.25, 0.0, 0);
                 if (getRuntime() - stateStartTime > 0.2) { state++;stateStartTime = getRuntime();
                 }
