@@ -79,6 +79,7 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         webInterface.addParameter("Kd_drive", 0.00);
         webInterface.addParameter("dbsizec", 0.3);
         webInterface.addParameter("dbdepthc", 0.3);
+        webInterface.addParameter("tuckValue", 0.3);
 
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start();
@@ -212,6 +213,8 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
 
         if (gamepad2.aWasPressed()) {
             webInterface.setParameter("shooter_power", 0.55);
+           //webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") + 0.05);
+            //webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") - 0.05);
         }
         if (gamepad2.bWasPressed()) {
             webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") + 0.05);
@@ -224,13 +227,15 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
     }
 
     // FINAL CORRECT FIELD-RELATIVE IMPLEMENTATION
+    /**
     private void driveFieldRelative(double forward, double right, double rotate) {
         // Correct atan2 order (back to original)
         double theta = Math.atan2(forward, right);
         double r = Math.hypot(right, forward);
 
         double robotHeading = angles.firstAngle;
-        double correctedHeading = AngleUnit.DEGREES.toRadians(robotHeading - this.yawZero);
+        //double correctedHeading = AngleUnit.DEGREES.toRadians(robotHeading - this.yawZero);
+        double correctedHeading = AngleUnit.DEGREES.toRadians(robotHeading - driveController.yawZero);
 
         // Use + for heading correction
         theta = AngleUnit.normalizeRadians(theta + correctedHeading);
@@ -242,7 +247,35 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         // No swap - pass directly
         drive(newForward, newRight, rotate);
     }
+    */
+    private void driveFieldRelative(double forward, double right, double rotate) {
+        // Normalize joystick to circular range
+        double magnitude = Math.hypot(forward, right);
+        if (magnitude > 1.0) {
+            forward /= magnitude;
+            right /= magnitude;
+            magnitude = 1.0;
+        }
 
+        // Smooth the magnitude so transitions between directions keep consistent speed
+        double angle = Math.atan2(right, forward);
+
+        // Apply heading correction using rotation matrix
+        double robotHeading = angles.firstAngle;
+        double heading = Math.toRadians(-(robotHeading + driveController.yawZero));
+
+        double newForward = forward * Math.cos(heading) - right * Math.sin(heading);
+        double newRight   = forward * Math.sin(heading) + right * Math.cos(heading);
+
+        // Reapply the original magnitude to prevent directional speed differences
+        double newMagnitude = Math.hypot(newForward, newRight);
+        if (newMagnitude > 0.001) {
+            newForward = newForward / newMagnitude * magnitude;
+            newRight   = newRight / newMagnitude * magnitude;
+        }
+
+        drive(newForward, newRight, rotate);
+    }
     String formatAngle(AngleUnit angleUnit, double angle) {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
@@ -255,7 +288,7 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
         double frontLeftPower = forward + right + rotate;
         double frontRightPower = forward - right - rotate;
         double backRightPower = forward + right - rotate;
-        double backLeftPower = forward - right + rotate;
+        double backLeftPower = forward -  right + rotate;
 
         double maxPower = Math.max(
                 Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)),
