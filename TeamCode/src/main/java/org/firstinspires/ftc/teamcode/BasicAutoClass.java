@@ -6,6 +6,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -70,6 +71,17 @@ public class BasicAutoClass {
         webInterface.addParameter("dbsizec", 0.3);
         webInterface.addParameter("dbdepthc", 0.3);
 
+        shooter = opMode.hardwareMap.get(DcMotor.class, "shooter");
+
+        PIDFCoefficients defaults_shooter = ((DcMotorEx) shooter).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        defaults_shooter.p = 90; // set default
+
+        webInterface.addParameter("Kp_shooter", defaults_shooter.p);
+        webInterface.addParameter("Ki_shooter", defaults_shooter.i);
+        webInterface.addParameter("Kd_shooter", defaults_shooter.d);
+        webInterface.addParameter("Kf_shooter", defaults_shooter.f);
+
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start(); // start server
 
@@ -82,8 +94,6 @@ public class BasicAutoClass {
         frontRightDrive = opMode.hardwareMap.get(DcMotor.class, "front_right_drive");
         backLeftDrive = opMode.hardwareMap.get(DcMotor.class, "back_left_drive");
         backRightDrive = opMode.hardwareMap.get(DcMotor.class, "back_right_drive");
-
-        shooter = opMode.hardwareMap.get(DcMotor.class, "shooter");
 
 
         intake = opMode.hardwareMap.get(DcMotor.class, "intake");
@@ -209,6 +219,16 @@ public class BasicAutoClass {
 
         // update PID coefs from webInterface
         updateDrivingPIDCoefs();
+
+        // update shooter PIDF
+        ((DcMotorEx) shooter).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(
+                        webInterface.getParameter("Kp_shooter"),
+                        webInterface.getParameter("Ki_shooter"),
+                        webInterface.getParameter("Kd_shooter"),
+                        webInterface.getParameter("Kf_shooter")
+                )
+        );
 
         AutoStateThing statething = this.opModeLoopFunction.apply(state, stateStartTime);
 
