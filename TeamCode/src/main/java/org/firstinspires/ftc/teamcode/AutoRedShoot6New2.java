@@ -251,7 +251,7 @@ public class AutoRedShoot6New2 extends LinearOpMode {
                 }
             } else if (state == 24) {
                 telemetry.addLine("drive off of start line");
-                autoThing.driveController.driveFieldRelative(moves[25][0], moves[25][1], moves[25][2]); //(-0.2, -0.5, 0)
+                autoThing.driveController.driveFieldRelative(moves[24][0], moves[24][1], moves[24][2]); //(-0.2, -0.5, 0)
                 if (getRuntime() - stateStartTime > moves[24][3]) {//(getRuntime() - stateStartTime > 1.5)
                     state++;stateStartTime = getRuntime();
                 }

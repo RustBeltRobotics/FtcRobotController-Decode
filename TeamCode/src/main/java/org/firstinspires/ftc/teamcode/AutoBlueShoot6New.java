@@ -75,7 +75,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
             { -0.22,   0.33,  0.0,  1.55  },  // 20 - Drive towards 1st move position
             { -0.25,   0.0,   0.0,  0.6   },  // 21 - Drive into goal and prepare to shoot
             {  0.25,   0.0,   0.0,  0.2   },  // 22 - Drive away from goal slightly
-            {  0.0,    0.0,   0.0,  4.5   },  // 23 - Shooting balls
+            {  0.0,    0.0,   0.0,  4.5   },  // 23 - Shooting balls //4.5
             {  0.22,  -0.33,  0.0,  2.0   },  // 24 - Drive off of start line
             {  0.0,    0.0,   0.0,  1.0   },  // 25 - (stop)
     };
@@ -241,7 +241,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
                 }
             } else if (state == 24) {
                 telemetry.addLine("drive off of start line");
-                autoThing.driveController.driveFieldRelative(moves[25][0], moves[25][1], moves[25][2]); //(-0.2, -0.5, 0)
+                autoThing.driveController.driveFieldRelative(moves[24][0], moves[24][1], moves[24][2]); //(-0.2, -0.5, 0)
                 if (getRuntime() - stateStartTime > moves[24][3]) {//(getRuntime() - stateStartTime > 1.5)
                     state++;stateStartTime = getRuntime();
                 }
