@@ -45,8 +45,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@Autonomous(name = "!_BlueShoot9", group = "Robot")
-public class AutoBlueShoot6New extends LinearOpMode {
+@Autonomous(name = "!_RedShoot9Better", group = "Robot")
+public class AutoRedShoot6New2 extends LinearOpMode {
 
     static final double R60 = Math.toRadians(60);
 
@@ -59,7 +59,7 @@ public class AutoBlueShoot6New extends LinearOpMode {
             {  0.25,   0.0,   0.0,  0.75  },  // 4  - Drive Away from goal towards first row pickup spot
             {  0.22,  -0.3,   0.0,  0.25  },  // 5  - Drive Away from goal towards 1st row pickup position 2
             {  0.0,    0.0,   R60,  0.28  },  // 6  - Rotate to pickup balls
-            { -0.125, -0.125, 0.0,  1.7   },  // 7  - Strafe to pickup first row balls
+            { -0.125, -0.125, 0.0,  1.7   },  // 7  - Strafe to pickup fir6st row balls
             {  0.125,  0.125, 0.0,  1.7   },  // 8  - Strafe back to first row start position
             {  0.0,    0.0,  -R60,  0.22  },  // 9  - Rotate back to face goal again
             { -0.22,   0.3,   0.0,  0.01  },  // 10 - Drive Away from first row pickup towards 2nd row pickup
@@ -79,12 +79,22 @@ public class AutoBlueShoot6New extends LinearOpMode {
             {  0.22,  -0.33,  0.0,  2.0   },  // 24 - Drive off of start line
             {  0.0,    0.0,   0.0,  1.0   },  // 25 - (stop)
     };
+
+    double[] mirror = { 1.0, -1.0, -1.0, 1.0 };
+
     BasicAutoClass autoThing = new BasicAutoClass();
 
     @Override
     public void runOpMode() {
+        // blue shoot, aquire and shoot
+        for (int i = 0; i < moves.length; i++) {
+            for (int j = 0; j < moves[i].length; j++) {
+                moves[i][j] *= mirror[j];
+            }
+        }
+
         autoThing.onRunOpMode(this, (Integer state, Double stateStartTime) -> {
-            // blue shoot, aquire and shoot
+
             if (state == 0) {
                 telemetry.addLine("Shooter spin-up...");
                 autoThing.shooter.setPower(-0.55);

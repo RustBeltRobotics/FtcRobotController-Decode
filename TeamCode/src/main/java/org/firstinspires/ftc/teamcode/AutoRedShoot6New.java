@@ -45,7 +45,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  *
  */
-@Autonomous(name = "!_RedShoot9", group = "Robot")
+@Autonomous(name = "RedShoot9-Old Shaan", group = "Robot")
 public class AutoRedShoot6New extends LinearOpMode {
 
     BasicAutoClass autoThing = new BasicAutoClass();
