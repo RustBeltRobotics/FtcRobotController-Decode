@@ -1,6 +1,30 @@
 /* Copyright (c) 2025 FIRST. All rights reserved.
  *
- * FINAL WORKING VERSION - Correct atan2 order
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.firstinspires.ftc.teamcode;
 
@@ -19,6 +43,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -30,12 +55,19 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import java.io.IOException;
 import java.util.Locale;
 
-@TeleOp(name = "!_SVPUtiliserCeModeTeleop2", group = "Robot")
+/*
+ * This OpMode illustrates how to program your robot to drive field relative.
+ *
+ * FIXED: Corrected field-relative math - changed minus to plus in theta calculation
+ */
+@TeleOp(name = "Robot: Field Relative FIXED", group = "Robot")
 public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
+    // This declares the four motors needed
     DcMotor frontLeftDrive;
     DcMotor frontRightDrive;
     DcMotor backLeftDrive;
     DcMotor backRightDrive;
+
     DcMotor shooter;
     DcMotor intake;
     DcMotor feeder;
@@ -51,54 +83,59 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
     boolean lastGamepadX = false;
 
     Toggler aToggler = new Toggler();
-    DriveController driveController;
 
     double yawZero;
 
     @Override
     public void runOpMode() {
-        Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(
-                new Rev9AxisImuOrientationOnRobot(
-                        Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP,
-                        Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD
-                )
-        );
+        Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
+
+        System.out.println("MAIN ACTUAL OPCODE YAY A");
+
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
+        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        intake = hardwareMap.get(DcMotor.class, "intake");
+        feeder = hardwareMap.get(DcMotor.class, "feeder");
+        feeder2 = hardwareMap.get(DcMotor.class, "feeder2");
 
         webTelemetryStreamer = new WebTelemetryStreamer(8886);
         Thread webTelemetryStreamerThread = new Thread(webTelemetryStreamer);
         webTelemetryStreamerThread.start();
 
         webInterface = new WebInterface(8885);
-        webInterface.addParameter("shooter_power", 0.55);
+        webInterface.addParameter("shooter_power", 0.551);
         webInterface.addParameter("feeder2_power", 0.4);
         webInterface.addParameter("Kp_drive", 0.01);
         webInterface.addParameter("Ki_drive", 0.00);
         webInterface.addParameter("Kd_drive", 0.00);
-        webInterface.addParameter("dbsizec", 0.3);
-        webInterface.addParameter("dbdepthc", 0.3);
-        webInterface.addParameter("tuckValue", 0.3);
+
+        PIDFCoefficients defaults_shooter =((DcMotorEx) shooter).getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        defaults_shooter.p = 90;
+
+        webInterface.addParameter("Kp_shooter", defaults_shooter.p);
+        webInterface.addParameter("Ki_shooter", defaults_shooter.i);
+        webInterface.addParameter("Kd_shooter", defaults_shooter.d);
+        webInterface.addParameter("Kf_shooter", defaults_shooter.f);
 
         Thread webInterfaceThread = new Thread(webInterface);
         webInterfaceThread.start();
 
-        frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
-        frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
-        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
-        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        feeder = hardwareMap.get(DcMotor.class, "feeder");
-        feeder2 = hardwareMap.get(DcMotor.class, "feeder2");
-
         intake.setDirection(DcMotor.Direction.FORWARD);
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         feeder.setDirection(DcMotor.Direction.FORWARD);
         feeder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         feeder2.setDirection(DcMotor.Direction.FORWARD);
         feeder2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         shooter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -117,22 +154,15 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
 
         waitForStart();
 
-        driveController = new DriveController(imu, frontRightDrive, frontLeftDrive, backLeftDrive, backRightDrive, new PIDController(0.0, 0.0, 0.0));
-        driveController.init();
-
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        driveController.yawZero = 0.0 - angles.firstAngle;
+        yawZero = 0.0 - angles.firstAngle;
 
         int loopcounter = 0;
         while (opModeIsActive()) {
             loop2(loopcounter++);
         }
 
-//        try {
-//            webInterface.stop();
-//        } catch (IOException e) {
-//
-//        }
+        webInterface.stop();
 
         try {
             webTelemetryStreamer.stop();
@@ -140,7 +170,7 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
     }
 
     private double avg(double a, double b) {
-        return (a + b) / 2;
+        return (a + b)/2;
     }
 
     private double boolToDoubleBecauseItWontCast(boolean input) {
@@ -148,41 +178,71 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
     }
 
     public void loop2(int loopcounter) {
-        telemetry.addLine("Press DPAD UP to reset Yaw");
-        telemetry.addLine("RIGHT BUMPER for robot-relative");
+        telemetry.addLine("Press D-Pad UP to reset field-relative orientation");
+        telemetry.addLine("Hold right bumper for robot-relative mode");
+        telemetry.addLine("Left joystick controls direction");
+        telemetry.addLine("Right joystick left/right rotates robot");
 
-        driveController.drivingPID.setCoefs(
-                webInterface.getParameter("Kp_drive"),
-                webInterface.getParameter("Ki_drive"),
-                webInterface.getParameter("Kd_drive")
-        );
-
-        driveController.drivingPID.setDeadbandStuff(
-                webInterface.getParameter("dbsizec"),
-                webInterface.getParameter("dbdepthc")
+        ((DcMotorEx) shooter).setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
+                new PIDFCoefficients(
+                        webInterface.getParameter("Kp_shooter"),
+                        webInterface.getParameter("Ki_shooter"),
+                        webInterface.getParameter("Kd_shooter"),
+                        webInterface.getParameter("Kf_shooter")
+                )
         );
 
         angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
+        telemetry.addData("connection", imu.getConnectionInfo());
         telemetry.addData("heading", formatAngle(angles.angleUnit, angles.firstAngle));
+        telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
+        telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
         if (loopcounter % 3 == 0) {
             webTelemetryStreamer.sendData("heading", angles.firstAngle);
+            webTelemetryStreamer.sendData("roll", angles.secondAngle);
+            webTelemetryStreamer.sendData("pitch", angles.thirdAngle);
+
             webTelemetryStreamer.sendData("x", gamepad1.left_stick_x * 100.0);
             webTelemetryStreamer.sendData("y", gamepad1.left_stick_y * 100.0);
+            webTelemetryStreamer.sendData("theta", gamepad1.right_stick_x * 100.0);
 
             webTelemetryStreamer.sendData("current_frontLeftDrive", ((DcMotorEx) frontLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_frontRightDrive", ((DcMotorEx) frontRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_backLeftDrive", ((DcMotorEx) backLeftDrive).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_backRightDrive", ((DcMotorEx) backRightDrive).getCurrent(CurrentUnit.MILLIAMPS));
+
+            webTelemetryStreamer.sendData("speed_shooter", -((DcMotorEx) shooter).getVelocity(AngleUnit.DEGREES));
+            webTelemetryStreamer.sendData("speed_intake", -((DcMotorEx) intake).getVelocity(AngleUnit.DEGREES));
+            webTelemetryStreamer.sendData("speed_feeder", -((DcMotorEx) feeder).getVelocity(AngleUnit.DEGREES));
+            webTelemetryStreamer.sendData("speed_feeder2", ((DcMotorEx) feeder2).getVelocity(AngleUnit.DEGREES));
+
+            webTelemetryStreamer.sendData("current_shooter", ((DcMotorEx) shooter).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_intake", ((DcMotorEx) intake).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_feeder", ((DcMotorEx) feeder).getCurrent(CurrentUnit.MILLIAMPS));
+            webTelemetryStreamer.sendData("current_feeder2", ((DcMotorEx) feeder2).getCurrent(CurrentUnit.MILLIAMPS));
+
+            for (VoltageSensor sensor : hardwareMap.voltageSensor) {
+                break;
+            }
         }
 
         double invert_all_emergency = ((Math.min((gamepad1.left_bumper ? 1 : 0) + (gamepad2.left_bumper ? 1 : 0), 1.0)) * 2 - 1);
 
+        // Reset field-relative coordinate system when D-pad UP is pressed
+        if (gamepad1.dpad_up) {
+            angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            yawZero = 0.0 - angles.firstAngle;
+        }
+
+        // Drive controls
         if (!gamepad1.right_bumper) {
-            driveFieldRelative(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+            // Field-relative mode (FIXED VERSION)
+            driveFieldRelativeFixed(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
         } else {
-            telemetry.addLine("ROBOT RELATIVE MODE");
+            // Robot-relative mode
+            telemetry.addLine("ROBOT-RELATIVE MODE");
             drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
 
@@ -190,125 +250,93 @@ public class SVPUtiliserCeModeTeleop2 extends LinearOpMode {
             shooterToggle = !shooterToggle;
         }
 
-        if (gamepad1.dpad_up) {
-            driveController.yawZero = 0.0 - angles.firstAngle;
-            telemetry.addLine(">>> YAW RESET <<<");
-        }
-
         lastGamepadX = gamepad1.x;
+
         aToggler.update(gamepad1.a);
 
         double shooterPowerCoef = webInterface.getParameter("shooter_power");
         double upperWheelPower = webInterface.getParameter("feeder2_power");
         double restPowerLevel = 1.9;
 
-        shooter.setPower(shooterToggle ? -shooterPowerCoef :
-                (-invert_all_emergency * (((gamepad1.left_trigger * shooterPowerCoef - gamepad1.right_trigger * shooterPowerCoef) +
-                        (gamepad2.left_trigger * shooterPowerCoef - gamepad2.right_trigger * shooterPowerCoef)) / 2.0)));
+        shooter.setPower(shooterToggle ? -shooterPowerCoef : (-invert_all_emergency * (((gamepad1.left_trigger * shooterPowerCoef - gamepad1.right_trigger * shooterPowerCoef) + (gamepad2.left_trigger * shooterPowerCoef - gamepad2.right_trigger * shooterPowerCoef))/2.0)));
 
-        intake.setPower(avg(gamepad2.left_stick_y * restPowerLevel,
-                invert_all_emergency * boolToDoubleBecauseItWontCast(aToggler.currentState || gamepad1.b || gamepad1.y) * restPowerLevel));
-        feeder.setPower(avg(gamepad2.right_stick_y * restPowerLevel,
-                invert_all_emergency * boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * restPowerLevel));
-        feeder2.setPower(avg(gamepad2.right_stick_x * upperWheelPower,
-                invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * upperWheelPower));
+        intake.setPower(avg(gamepad2.left_stick_y * restPowerLevel,   invert_all_emergency *   boolToDoubleBecauseItWontCast(aToggler.currentState || gamepad1.b || gamepad1.y) * restPowerLevel));
+        feeder.setPower(avg(gamepad2.right_stick_y * restPowerLevel,  invert_all_emergency *  boolToDoubleBecauseItWontCast(gamepad1.b || gamepad1.y) * restPowerLevel));
+        feeder2.setPower(avg(gamepad2.right_stick_x * upperWheelPower, invert_all_emergency * -boolToDoubleBecauseItWontCast(gamepad1.y) * upperWheelPower));
 
         if (gamepad2.aWasPressed()) {
             webInterface.setParameter("shooter_power", 0.55);
-           //webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") + 0.05);
-            //webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") - 0.05);
         }
+
         if (gamepad2.bWasPressed()) {
             webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") + 0.05);
         }
+
         if (gamepad2.xWasPressed()) {
             webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") - 0.05);
         }
 
+        telemetry.addData("shooter_power", webInterface.getParameter("shooter_power"));
+
         telemetry.update();
     }
 
-    // FINAL CORRECT FIELD-RELATIVE IMPLEMENTATION
-    /**
-    private void driveFieldRelative(double forward, double right, double rotate) {
-        // Correct atan2 order (back to original)
+    // FIXED FIELD-RELATIVE DRIVE FUNCTION
+    // The only change from original: minus changed to plus in theta calculation
+    private void driveFieldRelativeFixed(double forward, double right, double rotate) {
+        // First, convert direction being asked to drive to polar coordinates
         double theta = Math.atan2(forward, right);
         double r = Math.hypot(right, forward);
 
-        double robotHeading = angles.firstAngle;
-        //double correctedHeading = AngleUnit.DEGREES.toRadians(robotHeading - this.yawZero);
-        double correctedHeading = AngleUnit.DEGREES.toRadians(robotHeading - driveController.yawZero);
+        // Get current robot orientation
+        angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-        // Use + for heading correction
-        theta = AngleUnit.normalizeRadians(theta + correctedHeading);
+        // Calculate yaw with normalization
+        double yaw_corrected = ((((0.0 - angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
 
-        // Standard polar to Cartesian
+        // FIXED: Changed minus to plus here!
+        theta = AngleUnit.normalizeRadians(theta + (yaw_corrected) * (Math.PI/180.0));
+
+        // Third, convert back to cartesian
         double newForward = r * Math.sin(theta);
         double newRight = r * Math.cos(theta);
 
-        // No swap - pass directly
+        // Finally, call the drive method with robot relative forward and right amounts
         drive(newForward, newRight, rotate);
     }
-    */
-    private void driveFieldRelative(double forward, double right, double rotate) {
-        // Normalize joystick to circular range
-        double magnitude = Math.hypot(forward, right);
-        if (magnitude > 1.0) {
-            forward /= magnitude;
-            right /= magnitude;
-            magnitude = 1.0;
-        }
 
-        // Smooth the magnitude so transitions between directions keep consistent speed
-        double angle = Math.atan2(right, forward);
-
-        // Apply heading correction using rotation matrix
-        double robotHeading = angles.firstAngle;
-        double heading = Math.toRadians(-(robotHeading + driveController.yawZero));
-
-        double newForward = forward * Math.cos(heading) - right * Math.sin(heading);
-        double newRight   = forward * Math.sin(heading) + right * Math.cos(heading);
-
-        // Reapply the original magnitude to prevent directional speed differences
-        double newMagnitude = Math.hypot(newForward, newRight);
-        if (newMagnitude > 0.001) {
-            newForward = newForward / newMagnitude * magnitude;
-            newRight   = newRight / newMagnitude * magnitude;
-        }
-
-        drive(newForward, newRight, rotate);
-    }
     String formatAngle(AngleUnit angleUnit, double angle) {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
 
-    String formatDegrees(double degrees) {
+    String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
+    }
+
+    private double jsrc(double power) {
+        double a = 3.33;
+        double b = 0.35;
+
+        return (Math.signum(power)*Math.pow(Math.abs(power), a) + (power * b)) / (1 + b);
     }
 
     public void drive(double forward, double right, double rotate) {
         double frontLeftPower = forward + right + rotate;
         double frontRightPower = forward - right - rotate;
         double backRightPower = forward + right - rotate;
-        double backLeftPower = forward -  right + rotate;
+        double backLeftPower = forward - right + rotate;
 
-        double maxPower = Math.max(
-                Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)),
-                Math.max(Math.abs(backRightPower), Math.abs(backLeftPower))
-        );
-
-        if (maxPower > 1.0) {
-            frontLeftPower /= maxPower;
-            frontRightPower /= maxPower;
-            backRightPower /= maxPower;
-            backLeftPower /= maxPower;
-        }
-
+        double maxPower = 1.0;
         double maxSpeed = 1.0;
 
-        frontLeftDrive.setPower(maxSpeed * frontLeftPower);
-        frontRightDrive.setPower(maxSpeed * frontRightPower);
-        backLeftDrive.setPower(maxSpeed * backLeftPower);
-        backRightDrive.setPower(maxSpeed * backRightPower);
+        maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
+        maxPower = Math.max(maxPower, Math.abs(frontRightPower));
+        maxPower = Math.max(maxPower, Math.abs(backRightPower));
+        maxPower = Math.max(maxPower, Math.abs(backLeftPower));
+
+        frontLeftDrive.setPower(maxSpeed * (frontLeftPower / maxPower));
+        frontRightDrive.setPower(maxSpeed * (frontRightPower / maxPower));
+        backLeftDrive.setPower(maxSpeed * (backLeftPower / maxPower));
+        backRightDrive.setPower(maxSpeed * (backRightPower / maxPower));
     }
 }
