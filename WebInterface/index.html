@@ -6,8 +6,9 @@
         body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
         #canvas {
             background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            width: 1000px;
-            height: 450px;
+            display: block;
+            max-width: 100%;
+            height: auto;
         }
         .slider-container { margin-bottom: 5px; }
         label { display: inline-block; width: 150px; }
@@ -25,6 +26,11 @@
         .channel-checkbox input[type="checkbox"] {
             margin-right: 5px;
         }
+        #canvas-container {
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -32,14 +38,29 @@
     <br>
     <div id="channels-container"></div>
     <br>
-    <canvas id="canvas" width="2000" height="900"></canvas>
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
     <br>
     <button onclick="saveHistory()">save data</button>
 
     <script>
         const slidersElement = document.getElementById("sliders");
         const canvas = document.getElementById("canvas");
+        const canvasContainer = document.getElementById("canvas-container");
         const ctx = canvas.getContext("2d");
+
+        // Set canvas resolution based on container width
+        function resizeCanvas() {
+            const rect = canvasContainer.getBoundingClientRect();
+            canvas.width = rect.width * 2;
+            canvas.height = 450 * 2;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = '450px';
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
         // Configuration
         // Allow alternative host using hash
