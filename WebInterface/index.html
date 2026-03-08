@@ -453,7 +453,7 @@
             const keys = Object.keys(updateObj);
             if (keys.length === 0) return;
 
-            fullHistory.push(updateObj);
+            fullHistory.push([updateObj, Date.now()]);
 
             const now = Date.now();
 
