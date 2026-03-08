@@ -234,12 +234,12 @@
             mouseX = (e.clientX - rect.left) * scaleX;
             mouseY = (e.clientY - rect.top) * scaleY;
             isMouseOverCanvas = true;
-            render();
+            // render();
         });
 
         canvas.addEventListener('mouseleave', () => {
             isMouseOverCanvas = false;
-            render();
+            // render();
         });
 
         function applyUpdate(updateObj) {
@@ -273,7 +273,7 @@
             });
 
 
-            render();
+            // render();
         }
 
         function createChannelCheckbox(channelName) {
@@ -289,7 +289,7 @@
             // Add event listener
             document.getElementById(`channel-${channelName}`).addEventListener('change', (e) => {
                 channelVisibility[channelName] = e.target.checked;
-                render();
+                // render();
             });
         }
 
@@ -305,7 +305,8 @@
             a.click();
         }
 
-        setInterval(render, 500);
+        // setInterval(render, 500);
+        render();
 
         function render() {
             // 1. Clear Screen
@@ -327,6 +328,8 @@
 
             // 5. Draw Legend
             drawLegend();
+
+            requestAnimationFrame(render);
         }
 
         function drawGraph() {
