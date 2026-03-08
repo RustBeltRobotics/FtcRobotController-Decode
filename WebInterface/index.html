@@ -26,10 +26,13 @@
         const ctx = canvas.getContext("2d");
 
         // Configuration
-        const HOST = '192.168.43.1';
+        // Allow alternative host using hash
+        const HOST = document.location.hash.slice(1) || '192.168.43.1';
         // const PORT1 = 8885;
         const PORT2 = 8886;
         const MAX_DATA_POINTS = 150;
+
+        console.log(`Connecting to ${HOST}:${PORT2}`)
         
         // Visual Settings
         const PADDING = { top: 20, right: 20, bottom: 30, left: 100 }; // Space for labels
