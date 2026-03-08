@@ -6,54 +6,76 @@
         body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
         #canvas {
             background: #fff; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            width: 1000px;
-            height: 450px;
+            display: block;
+            max-width: 100%;
+            height: auto;
         }
         .slider-container { margin-bottom: 5px; }
         label { display: inline-block; width: 150px; }
+        #channels-container {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .channel-checkbox {
+            margin-right: 15px;
+            display: inline-block;
+        }
+        .channel-checkbox input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        #canvas-container {
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
     <div id="sliders"></div>
     <br>
-    <canvas id="canvas" width="2000" height="900"></canvas>
+    <div id="channels-container"></div>
+    <br>
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+    </div>
     <br>
     <button onclick="saveHistory()">save data</button>
 
     <script>
         const slidersElement = document.getElementById("sliders");
         const canvas = document.getElementById("canvas");
+        const canvasContainer = document.getElementById("canvas-container");
         const ctx = canvas.getContext("2d");
 
+        // Set canvas resolution based on container width
+        function resizeCanvas() {
+            const rect = canvasContainer.getBoundingClientRect();
+            canvas.width = rect.width * 2;
+            canvas.height = 450 * 2;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = '450px';
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
         // Configuration
-        const HOST = '192.168.43.1';
+        // Allow alternative host using hash
+        const HOST = document.location.hash.slice(1) || '192.168.43.1';
         // const PORT1 = 8885;
         const PORT2 = 8886;
         const MAX_DATA_POINTS = 150;
+
+        console.log(`Connecting to ${HOST}:${PORT2}`)
         
         // Visual Settings
         const PADDING = { top: 20, right: 20, bottom: 30, left: 100 }; // Space for labels
         const LINE_WIDTH = 3;
         // A nice palette of distinct colors
         const PALETTE = ['#e6194b', '#3cb44b', '#0082c8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#d2f53c', '#fabebe', '#008080'];
-
-        // // --- Slider Logic ---
-        // fetch("http://" + HOST + ':' + PORT1)
-        //     .then((x) => x.json()) // FIXED: added ()
-        //     .then((sliders) =>
-        //         sliders.forEach(([key, value]) => {
-        //             const container = document.createElement("div");
-        //             container.className = "slider-container";
-        //             container.innerHTML = `<label>${key}:</label><input id="${key}" type="range" min="0.0" max="2.0" step="0.01" value="${value}" /><label id="${key}_l">${value}</label>`;
-        //             slidersElement.appendChild(container);
-
-        //             document.getElementById(key).addEventListener("input", (ev) => {
-        //                 document.getElementById(key + "_l").innerText = ev.target.value;
-        //                 // Note: Ensure your server handles this GET format
-        //                 fetch("/setValue?" + ev.target.id + ":" + ev.target.value);
-        //             });
-        //         })
-        //     ).catch(e => console.log("Slider fetch failed (offline mode?):", e));
 
         // --- Graph Logic ---
         // Channel mapping from ID to name
@@ -218,6 +240,28 @@
         // Map keys to specific colors to keep them consistent
         const keyColorMap = {}; 
         let colorIndex = 0;
+        // Track visibility of each channel
+        const channelVisibility = {};
+        
+        // Mouse tracking
+        let mouseX = null;
+        let mouseY = null;
+        let isMouseOverCanvas = false;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            mouseX = (e.clientX - rect.left) * scaleX;
+            mouseY = (e.clientY - rect.top) * scaleY;
+            isMouseOverCanvas = true;
+            // render();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isMouseOverCanvas = false;
+            // render();
+        });
 
         function applyUpdate(updateObj) {
             const keys = Object.keys(updateObj);
@@ -235,6 +279,10 @@
                     // Assign a color from the palette
                     keyColorMap[key] = PALETTE[colorIndex % PALETTE.length];
                     colorIndex++;
+                    // Initialize visibility as true for new channels
+                    channelVisibility[key] = true;
+                    // Create checkbox for this channel
+                    createChannelCheckbox(key);
                 }
 
                 series[key].push({ x: now, y: value });
@@ -246,7 +294,24 @@
             });
 
 
-            render();
+            // render();
+        }
+
+        function createChannelCheckbox(channelName) {
+            const channelsContainer = document.getElementById('channels-container');
+            const checkbox = document.createElement('div');
+            checkbox.className = 'channel-checkbox';
+            checkbox.innerHTML = `
+                <input type="checkbox" id="channel-${channelName}" checked>
+                <label for="channel-${channelName}">${channelName}</label>
+            `;
+            channelsContainer.appendChild(checkbox);
+            
+            // Add event listener
+            document.getElementById(`channel-${channelName}`).addEventListener('change', (e) => {
+                channelVisibility[channelName] = e.target.checked;
+                // render();
+            });
         }
 
         function saveHistory() {
@@ -261,7 +326,8 @@
             a.click();
         }
 
-        setInterval(render, 500);
+        // setInterval(render, 500);
+        render();
 
         function render() {
             // 1. Clear Screen
@@ -283,6 +349,8 @@
 
             // 5. Draw Legend
             drawLegend();
+
+            requestAnimationFrame(render);
         }
 
         function drawGraph() {
@@ -293,7 +361,7 @@
 
             for (const key in series) {
                 const points = series[key];
-                if (points.length === 0) continue;
+                if (!channelVisibility[key] || points.length === 0) continue;
                 hasData = true;
                 
                 // Fast check of first and last for time (since time is sorted)
@@ -329,6 +397,8 @@
             ctx.lineJoin = 'round';
 
             for (const key in series) {
+                if (!channelVisibility[key]) continue; // Skip hidden channels
+
                 const points = series[key];
                 const color = keyColorMap[key];
 
@@ -345,6 +415,116 @@
                 }
                 ctx.stroke();
             }
+
+            // Draw mouse cursor indicator if hovering over graph
+            if (isMouseOverCanvas && mouseX !== null && mouseY !== null) {
+                // Check if mouse is within graph area
+                if (mouseX >= PADDING.left && mouseX <= canvas.width - PADDING.right &&
+                    mouseY >= PADDING.top && mouseY <= canvas.height - PADDING.bottom) {
+                    
+                    // Convert mouse X position back to time value
+                    const hoverTime = minX + ((mouseX - PADDING.left) / graphW) * (maxX - minX);
+                    
+                    // Draw vertical line at cursor
+                    ctx.strokeStyle = "#999";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(mouseX, PADDING.top);
+                    ctx.lineTo(mouseX, canvas.height - PADDING.bottom);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Collect values from all visible channels at nearest time point
+                    const tooltipData = [];
+                    for (const key in series) {
+                        if (!channelVisibility[key]) continue;
+                        
+                        const points = series[key];
+                        if (points.length === 0) continue;
+                        
+                        // Find closest point to hover time
+                        let closest = points[0];
+                        let minDist = Math.abs(points[0].x - hoverTime);
+                        
+                        for (let p of points) {
+                            const dist = Math.abs(p.x - hoverTime);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                closest = p;
+                            }
+                        }
+                        
+                        tooltipData.push({ key, value: closest.y });
+                    }
+                    
+                    // Draw tooltips
+                    if (tooltipData.length > 0) {
+                        drawTooltip(mouseX, mouseY, tooltipData, getY, minY, maxY, hoverTime);
+                    }
+                }
+            }
+        }
+
+        function drawTooltip(x, y, data, getY, minY, maxY, hoverTime) {
+            ctx.save();
+            ctx.font = "14px sans-serif";
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+
+            const padding = 6;
+            const lineHeight = 20;
+
+            // Draw each channel value at its Y position
+            data.forEach((item) => {
+                // Interpolate value based on hover time
+                let interpolatedValue = item.value;
+                
+                // Find the two points surrounding hoverTime for this channel
+                const points = series[item.key];
+                if (points.length > 1) {
+                    for (let i = 0; i < points.length - 1; i++) {
+                        if (points[i].x <= hoverTime && hoverTime <= points[i + 1].x) {
+                            const p1 = points[i];
+                            const p2 = points[i + 1];
+                            const t = (hoverTime - p1.x) / (p2.x - p1.x);
+                            interpolatedValue = p1.y + (p2.y - p1.y) * t;
+                            break;
+                        }
+                    }
+                }
+                
+                const yPos = getY(interpolatedValue);
+                
+                // Measure text width
+                const text = item.key + ': ' + interpolatedValue.toFixed(2);
+                const textWidth = ctx.measureText(text).width;
+                const boxWidth = textWidth + (padding * 2);
+                const boxHeight = lineHeight;
+
+                // Position box to the right of cursor, at the channel's Y position
+                let boxX = x + 15;
+                let boxY = yPos - (boxHeight / 2);
+                
+                // Adjust if box would go off-screen
+                if (boxX + boxWidth > canvas.width) {
+                    boxX = x - 15 - boxWidth;
+                }
+
+                // Draw semi-transparent background
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+                
+                ctx.strokeStyle = keyColorMap[item.key] || "#fff";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+
+                // Draw text
+                ctx.fillStyle = keyColorMap[item.key] || "#fff";
+                ctx.fillText(text, boxX + padding, boxY + (boxHeight / 2));
+            });
+
+            ctx.restore();
         }
 
         function drawLegend() {

@@ -92,8 +92,8 @@ public class WebInterface implements Runnable {
                 handleConnection(client);
                 client.close();
             } catch (Exception e) {
-                System.out.println("WebInterface connection error " + e.getMessage());
-                e.printStackTrace(); // Helpful to see what actually happened in logcat
+//                System.out.println("WebInterface connection error " + e.getMessage());
+//                e.printStackTrace(); // Helpful to see what actually happened in logcat
             }
         }
     }
