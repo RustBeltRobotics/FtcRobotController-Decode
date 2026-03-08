@@ -133,8 +133,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webTelemetryStreamerThread.start(); // start server
 
         webInterface = new WebInterface(8885);
-        webInterface.addParameter("shooter_power", 0.551);
-        webInterface.addParameter("feeder2_power", 0.4);
+        webInterface.addParameter("shooter_power", 0.6);
+        webInterface.addParameter("feeder2_power", 0.6); //0.4
 
         webInterface.addParameter("Kp_drive", 0.01);
         webInterface.addParameter("Ki_drive", 0.00);
@@ -425,7 +425,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         double yaw_corrected = ((((0.0 - angles.firstAngle) - this.yawZero) + 180.0)) % 360.0 - 180.0;
 
-        theta = AngleUnit.normalizeRadians(theta - (yaw_corrected) * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
+        theta = AngleUnit.normalizeRadians(theta + (yaw_corrected) * (3.141592653589/180));//AngleUnit.normalizeRadians(theta -
                 //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
 
         // Third, convert back to cartesian
