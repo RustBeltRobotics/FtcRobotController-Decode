@@ -47,6 +47,7 @@ public class WebTelemetryStreamer implements Runnable {
 
     private void waitForClient() throws IOException {
         this.currentClient = this.serverSocket.accept();
+        this.currentClient.setTcpNoDelay(true); // tcp nodelay
 
         String response_start =
                 "HTTP/1.1 200 OK\r\n"+
@@ -84,17 +85,23 @@ public class WebTelemetryStreamer implements Runnable {
 
                 while (currentClient.isConnected()) {
                     try {
-                        byte[] message = messageQueue.poll();
-                        if (message != null) {
+                        byte[] message;
+                        boolean sentData = false;
+                        while ((message = messageQueue.poll()) != null) {
                             try {
                                 this.currentClientOut.write(message);
-                                // this.currentClientOut.flush();
+                                sentData = true;
                             } catch (IOException e) {
                                 System.out.print("[wts] IOException: ");
                                 System.out.println(e.getMessage());
                                 break;
                             }
                         }
+
+                        if (sentData) {
+                            this.currentClientOut.flush();
+                        }
+
                         Thread.sleep(3); // bad, use blocking queue instead
                     } catch (InterruptedException e) {
                         System.out.println("[wts] InterruptedException");
