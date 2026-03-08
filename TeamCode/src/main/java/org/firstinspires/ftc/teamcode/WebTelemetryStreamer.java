@@ -102,7 +102,7 @@ public class WebTelemetryStreamer implements Runnable {
                             this.currentClientOut.flush();
                         }
 
-                        Thread.sleep(3); // bad, use blocking queue instead
+                        Thread.sleep(10); // bad, use blocking queue instead
                     } catch (InterruptedException e) {
                         System.out.println("[wts] InterruptedException");
                     }
