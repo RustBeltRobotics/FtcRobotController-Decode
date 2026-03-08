@@ -31,6 +31,56 @@
             width: 100%;
             box-sizing: border-box;
         }
+        #diagnostics-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        #diagnostics-log {
+            flex: 1;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .log-entry {
+            padding: 2px 0;
+            color: #333;
+        }
+        .log-entry.info { color: #0066cc; }
+        .log-entry.warning { color: #ff9900; }
+        .log-entry.error { color: #cc0000; }
+        .log-entry.success { color: #00aa00; }
+        #diagnostics-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 180px;
+        }
+        .stat-field {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 6px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .stat-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .stat-value {
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -42,6 +92,28 @@
         <canvas id="canvas"></canvas>
     </div>
     <br>
+    <div id="diagnostics-container">
+        <div id="diagnostics-log"></div>
+        <div id="diagnostics-stats">
+            <div class="stat-field">
+                <div class="stat-label">Connection State</div>
+                <div class="stat-value" id="stat-connection">Disconnected</div>
+            </div>
+            <div class="stat-field">
+                <div class="stat-label">Message Rate</div>
+                <div class="stat-value" id="stat-message-rate">0 msg/s</div>
+            </div>
+            <div class="stat-field">
+                <div class="stat-label">Channel Count</div>
+                <div class="stat-value" id="stat-channel-count">0</div>
+            </div>
+            <div class="stat-field">
+                <div class="stat-label">Bandwidth</div>
+                <div class="stat-value" id="stat-bandwidth">0 B/s</div>
+            </div>
+        </div>
+    </div>
+    <br>
     <button onclick="saveHistory()">save data</button>
 
     <script>
@@ -49,6 +121,78 @@
         const canvas = document.getElementById("canvas");
         const canvasContainer = document.getElementById("canvas-container");
         const ctx = canvas.getContext("2d");
+
+        // --- Diagnostics System (Initialize First) ---
+        let diagnosticsState = {
+            connectionState: 'Disconnected',
+            messageCount: 0,
+            lastMessageTime: null,
+            channelCount: 0,
+            bytesReceived: 0,
+            lastStatsUpdate: Date.now(),
+            lastDataMessageTime: null,
+            hasGoneStale: false
+        };
+
+        const MAX_LOG_ENTRIES = 100;
+
+        function addLogEntry(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('diagnostics-log');
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            
+            logDiv.appendChild(entry);
+            
+            // Keep only last MAX_LOG_ENTRIES
+            const entries = logDiv.querySelectorAll('.log-entry');
+            if (entries.length > MAX_LOG_ENTRIES) {
+                entries[0].remove();
+            }
+            
+            // Auto-scroll to bottom
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatistics() {
+            const now = Date.now();
+            const elapsed = (now - diagnosticsState.lastStatsUpdate) / 1000; // seconds
+            
+            // Calculate message rate
+            const msgRate = elapsed > 0 ? (diagnosticsState.messageCount / elapsed).toFixed(2) : 0;
+            
+            // Calculate bandwidth
+            const bandwidth = elapsed > 0 ? (diagnosticsState.bytesReceived / elapsed).toFixed(0) : 0;
+            
+            // Update display
+            document.getElementById('stat-connection').textContent = diagnosticsState.connectionState;
+            document.getElementById('stat-message-rate').textContent = msgRate + ' msg/s';
+            document.getElementById('stat-channel-count').textContent = diagnosticsState.channelCount;
+            document.getElementById('stat-bandwidth').textContent = bandwidth + ' B/s';
+            
+            // Reset counters
+            diagnosticsState.messageCount = 0;
+            diagnosticsState.bytesReceived = 0;
+            diagnosticsState.lastStatsUpdate = now;
+        }
+
+        function checkDataMessageTimeout() {
+            const now = Date.now();
+            if (diagnosticsState.lastDataMessageTime && (now - diagnosticsState.lastDataMessageTime) > 500) {
+                if (!diagnosticsState.hasGoneStale) {
+                    addLogEntry("No data message in last 500ms", 'warning');
+                    diagnosticsState.hasGoneStale = true;
+                }
+            }
+        }
+
+        // Update statistics every 1 second
+        setInterval(updateStatistics, 1000);
+        
+        // Check for data stale timeout every 100ms
+        setInterval(checkDataMessageTimeout, 100);
 
         // Set canvas resolution based on container width
         function resizeCanvas() {
@@ -102,6 +246,8 @@
             offset += 2;
             
             console.log("Received channel map with", numChannels, "channels");
+            diagnosticsState.channelCount = numChannels;
+            addLogEntry(`Received channel map with ${numChannels} channels`, 'success');
             
             // Read each channel
             for (let i = 0; i < numChannels; i++) {
@@ -144,6 +290,17 @@
             }
             
             const channelName = channelIdToName[channelId];
+            
+            // Track diagnostics
+            const now = Date.now();
+            if (!diagnosticsState.lastDataMessageTime || (now - diagnosticsState.lastDataMessageTime) > 500) {
+                addLogEntry(`Got first data message (or first after 500ms break)`, 'success');
+                diagnosticsState.hasGoneStale = false;
+            }
+            diagnosticsState.lastDataMessageTime = now;
+            diagnosticsState.messageCount++;
+            diagnosticsState.bytesReceived += bytes.byteLength;
+            
             return { [channelName]: value };
         }
         
@@ -209,24 +366,37 @@
 
         // WebSocket-like approach using fetch with ReadableStream
         function connectToBinaryStream() {
+            addLogEntry("Attempting to connect...", 'info');
+            diagnosticsState.connectionState = 'Connecting';
+            
             fetch("http://" + HOST + ':' + PORT2)
-                .then(response => response.body.getReader())
+                .then(response => {
+                    diagnosticsState.connectionState = 'Connected';
+                    addLogEntry("Connected successfully", 'success');
+                    return response.body.getReader();
+                })
                 .then(reader => {
                     function read() {
                         reader.read().then(({ done, value }) => {
                             if (done) {
+                                diagnosticsState.connectionState = 'Disconnected';
+                                addLogEntry("Connection closed by server", 'warning');
                                 console.log("Binary stream ended");
                                 return;
                             }
                             processBinaryData(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength));
                             read();
                         }).catch(e => {
+                            diagnosticsState.connectionState = 'Disconnected';
+                            addLogEntry("Connection error: " + e.message, 'error');
                             console.error("Error reading stream:", e);
                         });
                     }
                     read();
                 })
                 .catch(e => {
+                    diagnosticsState.connectionState = 'Failed';
+                    addLogEntry("Failed to connect: " + e.message, 'error');
                     console.error("Stream connection failed (offline mode?):", e);
                     // If offline, uncomment this to test random data:
                     // setInterval(() => applyUpdate({ "Motor 1": Math.sin(Date.now()/500) * 10, "Servo": Math.cos(Date.now()/1000) * 5 }), 50);
