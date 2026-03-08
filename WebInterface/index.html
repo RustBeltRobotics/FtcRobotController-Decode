@@ -111,6 +111,10 @@
                 <div class="stat-label">Bandwidth</div>
                 <div class="stat-value" id="stat-bandwidth">0 B/s</div>
             </div>
+            <div class="stat-field">
+                <div class="stat-label">Average Chunk Length</div>
+                <div class="stat-value" id="stat-avg-chunk">0 B/chunk</div>
+            </div>
         </div>
     </div>
     <br>
@@ -131,7 +135,9 @@
             bytesReceived: 0,
             lastStatsUpdate: Date.now(),
             lastDataMessageTime: null,
-            hasGoneStale: false
+            hasGoneStale: false,
+            chunkCount: 0,
+            totalChunkBytes: 0
         };
 
         const MAX_LOG_ENTRIES = 100;
@@ -166,15 +172,21 @@
             // Calculate bandwidth
             const bandwidth = elapsed > 0 ? (diagnosticsState.bytesReceived / elapsed).toFixed(0) : 0;
             
+            // Calculate average chunk length
+            const avgChunkLength = diagnosticsState.chunkCount > 0 ? (diagnosticsState.totalChunkBytes / diagnosticsState.chunkCount).toFixed(0) : 0;
+            
             // Update display
             document.getElementById('stat-connection').textContent = diagnosticsState.connectionState;
             document.getElementById('stat-message-rate').textContent = msgRate + ' msg/s';
             document.getElementById('stat-channel-count').textContent = diagnosticsState.channelCount;
             document.getElementById('stat-bandwidth').textContent = bandwidth + ' B/s';
+            document.getElementById('stat-avg-chunk').textContent = avgChunkLength + ' B/chunk';
             
             // Reset counters
             diagnosticsState.messageCount = 0;
             diagnosticsState.bytesReceived = 0;
+            diagnosticsState.chunkCount = 0;
+            diagnosticsState.totalChunkBytes = 0;
             diagnosticsState.lastStatsUpdate = now;
         }
 
@@ -311,6 +323,10 @@
             const combined = new Uint8Array(binaryBuffer);
             combined.set(new Uint8Array(oldBuffer), 0);
             combined.set(new Uint8Array(newData), oldBuffer.byteLength);
+
+            // Track chunk diagnostics
+            diagnosticsState.chunkCount++;
+            diagnosticsState.totalChunkBytes += newData.byteLength;
             
             // Process complete messages
             let offset = 0;
