@@ -56,26 +56,30 @@ public class AutoRedShoot6New2 extends LinearOpMode {
             {  0.25,   0.0,   0.0,  0.2   },  // 1  - Drive backwards off of goal position
             {  0.0,    0.0,   0.0,  2.3   },  // 2  - Wait for shooter to spin up
             {  0.0,    0.0,   0.0,  3.0   },  // 3  - Shooting balls
-            {  0.25,   0.0,   0.0,  0.75  },  // 4  - Drive Away from goal towards first row pickup spot
-            {  0.22,  -0.3,   0.0,  0.25  },  // 5  - Drive Away from goal towards 1st row pickup position 2
-            {  0.0,    0.0,   R60,  0.28  },  // 6  - Rotate to pickup balls
-            { -0.125, -0.125, 0.0,  1.7   },  // 7  - Strafe to pickup fir6st row balls
-            {  0.125,  0.125, 0.0,  1.7   },  // 8  - Strafe back to first row start position
-            {  0.0,    0.0,  -R60,  0.22  },  // 9  - Rotate back to face goal again
-            { -0.22,   0.3,   0.0,  0.01  },  // 10 - Drive Away from first row pickup towards 2nd row pickup
-            { -0.25,   0.0,   0.0,  1.2   },  // 11 - Drive towards goal
-            {  0.25,   0.0,   0.0,  0.2   },  // 12 - Drive away from goal slightly
+            {  0.25,   0.0,   0.0,  0.70  },  // 4  - Drive Away from goal towards first row pickup spot
+            {  0.22,  -0.3,   0.0,  0.1  },  // 5  - Drive Away from goal towards 1st row pickup position 2 //0.25
+            {  0.0,    0.0,   R60,  0.2  },  // 6  - Rotate to pickup balls
+            { -0.125, -0.125, 0.0,  1.7   },  // 7  - Strafe to pickup first row balls
+            {  0.125,  0.125, 0.0,  1.45   },  // 8  - Strafe back to first row start position
+            {  0.0,    0.0,  -R60,  0.20  },  // 9  - Rotate back to face goal again // 0.22
+            { -0.22,   0.3,   0.0,  0.1  },  // 10 - Drive Away from first row pickup towards 2nd row pickup //0.01
+            { -0.25,   0.0,   0.0,  1.1   },  // 11 - Drive towards goal //1.2
+            {  0.125,   0.0,   0.0,  0.4   },  // 12 - Drive away from goal slightly
             {  0.0,    0.0,   0.0,  3.5   },  // 13 - Shooting balls
-            {  0.25,   0.0,   0.0,  0.9   },  // 14 - Drive Away from goal towards first row pickup spot
-            {  0.22,  -0.3,   0.0,  0.8   },  // 15 - Drive Away from goal towards 2nd row pickup
+            //------------------------------------------------------------------------
+            {  0.22,  0.33,  0.0,  2.0   },  // 24 - Drive off of start line
+            {  0.0,    0.0,   0.0,  10.0   },  // 25 - (stop)
+
+            {  0.25,   0.0,   0.0,  0.7   },  // 14 - Drive Away from goal towards first row pickup spot //0.9
+            {  0.22,  -0.3,   0.0,  1.3  },  // 15 - Drive Away from goal towards 2nd row pickup //0.8
             {  0.0,    0.0,   R60,  0.3   },  // 16 - Rotate to pickup balls
             { -0.125, -0.125, 0.0,  1.8   },  // 17 - Strafe to pickup second row balls
             {  0.125,  0.125, 0.0,  0.8   },  // 18 - Strafe back to initial pickup position second row balls
             {  0.0,    0.0,  -R60,  0.35  },  // 19 - Rotate back to face goal again
-            { -0.22,   0.33,  0.0,  1.55  },  // 20 - Drive towards 1st move position
+            { -0.22,   0.33,  0.0,  1.45  },  // 20 - Drive towards 1st move position  //1.55
             { -0.25,   0.0,   0.0,  0.6   },  // 21 - Drive into goal and prepare to shoot
             {  0.25,   0.0,   0.0,  0.2   },  // 22 - Drive away from goal slightly
-            {  0.0,    0.0,   0.0,  4.5   },  // 23 - Shooting balls
+            {  0.0,    0.0,   0.0,  4.5   },  // 23 - Shooting balls //4.5
             {  0.22,  -0.33,  0.0,  2.0   },  // 24 - Drive off of start line
             {  0.0,    0.0,   0.0,  1.0   },  // 25 - (stop)
     };
@@ -112,7 +116,7 @@ public class AutoRedShoot6New2 extends LinearOpMode {
                 }
             } else if (state == 3) {
                 telemetry.addLine("Shooting balls...");
-                autoThing.intake.setPower(1.9);autoThing.feeder.setPower(1.9);autoThing.feeder2.setPower(-0.4);
+                autoThing.intake.setPower(1.9);autoThing.feeder.setPower(1.9);autoThing.feeder2.setPower(-0.6);
                 if (getRuntime() - stateStartTime > moves[3][3]) {
                     autoThing.intake.setPower(0);autoThing.feeder.setPower(0);autoThing.feeder2.setPower(0);
                     state++;stateStartTime = getRuntime();
@@ -178,7 +182,7 @@ public class AutoRedShoot6New2 extends LinearOpMode {
                 }
             } else if (state == 13) {
                 telemetry.addLine("Shooting balls...");
-                autoThing.intake.setPower(1.9);autoThing.feeder.setPower(1.9);autoThing.feeder2.setPower(-0.4);
+                autoThing.intake.setPower(1.9);autoThing.feeder.setPower(1.9);autoThing.feeder2.setPower(-0.6);
                 if (getRuntime() - stateStartTime > moves[13][3]) {
                     autoThing.intake.setPower(0);autoThing.feeder.setPower(0);autoThing.feeder2.setPower(0);
                     state++; stateStartTime = getRuntime();
@@ -244,7 +248,7 @@ public class AutoRedShoot6New2 extends LinearOpMode {
             }
             else if (state == 23) {
                 telemetry.addLine("Shooting balls...");
-                autoThing.intake.setPower(1.9);autoThing.feeder.setPower(1.9);autoThing.feeder2.setPower(-0.4);
+                autoThing.intake.setPower(1.9);autoThing.feeder.setPower(1.9);autoThing.feeder2.setPower(-0.6);
                 if (getRuntime() - stateStartTime > moves[23][3]) {
                     autoThing.intake.setPower(0);autoThing.feeder.setPower(0);autoThing.feeder2.setPower(0);
                     state++;stateStartTime = getRuntime();
