@@ -221,6 +221,26 @@
         let colorIndex = 0;
         // Track visibility of each channel
         const channelVisibility = {};
+        
+        // Mouse tracking
+        let mouseX = null;
+        let mouseY = null;
+        let isMouseOverCanvas = false;
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            mouseX = (e.clientX - rect.left) * scaleX;
+            mouseY = (e.clientY - rect.top) * scaleY;
+            isMouseOverCanvas = true;
+            render();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isMouseOverCanvas = false;
+            render();
+        });
 
         function applyUpdate(updateObj) {
             const keys = Object.keys(updateObj);
@@ -371,6 +391,99 @@
                 }
                 ctx.stroke();
             }
+
+            // Draw mouse cursor indicator if hovering over graph
+            if (isMouseOverCanvas && mouseX !== null && mouseY !== null) {
+                // Check if mouse is within graph area
+                if (mouseX >= PADDING.left && mouseX <= canvas.width - PADDING.right &&
+                    mouseY >= PADDING.top && mouseY <= canvas.height - PADDING.bottom) {
+                    
+                    // Convert mouse X position back to time value
+                    const hoverTime = minX + ((mouseX - PADDING.left) / graphW) * (maxX - minX);
+                    
+                    // Draw vertical line at cursor
+                    ctx.strokeStyle = "#999";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(mouseX, PADDING.top);
+                    ctx.lineTo(mouseX, canvas.height - PADDING.bottom);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Collect values from all visible channels at nearest time point
+                    const tooltipData = [];
+                    for (const key in series) {
+                        if (!channelVisibility[key]) continue;
+                        
+                        const points = series[key];
+                        if (points.length === 0) continue;
+                        
+                        // Find closest point to hover time
+                        let closest = points[0];
+                        let minDist = Math.abs(points[0].x - hoverTime);
+                        
+                        for (let p of points) {
+                            const dist = Math.abs(p.x - hoverTime);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                closest = p;
+                            }
+                        }
+                        
+                        tooltipData.push({ key, value: closest.y });
+                    }
+                    
+                    // Draw tooltips
+                    if (tooltipData.length > 0) {
+                        drawTooltip(mouseX, mouseY, tooltipData, getY, minY, maxY);
+                    }
+                }
+            }
+        }
+
+        function drawTooltip(x, y, data, getY, minY, maxY) {
+            ctx.save();
+            ctx.font = "14px sans-serif";
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+
+            const padding = 6;
+            const lineHeight = 20;
+
+            // Draw each channel value at its Y position
+            data.forEach((item) => {
+                const yPos = getY(item.value);
+                
+                // Measure text width
+                const text = item.key + ': ' + item.value.toFixed(2);
+                const textWidth = ctx.measureText(text).width;
+                const boxWidth = textWidth + (padding * 2);
+                const boxHeight = lineHeight;
+
+                // Position box to the right of cursor, at the channel's Y position
+                let boxX = x + 15;
+                let boxY = yPos - (boxHeight / 2);
+                
+                // Adjust if box would go off-screen
+                if (boxX + boxWidth > canvas.width) {
+                    boxX = x - 15 - boxWidth;
+                }
+
+                // Draw semi-transparent background
+                ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+                ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+                
+                ctx.strokeStyle = keyColorMap[item.key] || "#fff";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+
+                // Draw text
+                ctx.fillStyle = keyColorMap[item.key] || "#fff";
+                ctx.fillText(text, boxX + padding, boxY + (boxHeight / 2));
+            });
+
+            ctx.restore();
         }
 
         function drawLegend() {
