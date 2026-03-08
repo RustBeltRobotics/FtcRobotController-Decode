@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.lang.InterruptedException;
 
 public class WebTelemetryStreamer implements Runnable {
 
@@ -75,43 +76,44 @@ public class WebTelemetryStreamer implements Runnable {
 
     private void listen(int port) throws IOException {
         this.serverSocket = new ServerSocket(port);
-        
-        try {
-            while (true) {
+
+        while (true) {
+            try {
                 waitForClient();
                 messageQueue.clear();
 
                 while (currentClient.isConnected()) {
-                    try {
-                        byte[] message;
-                        boolean sentData = false;
-                        while ((message = messageQueue.poll()) != null) {
-                            try {
-                                this.currentClientOut.write(message);
-                                sentData = true;
-                            } catch (IOException e) {
-                                System.out.print("[wts] IOException: ");
-                                System.out.println(e.getMessage());
-                                break;
-                            }
+                    byte[] message;
+                    boolean sentData = false;
+                    while ((message = messageQueue.poll()) != null) {
+                        try {
+                            this.currentClientOut.write(message);
+                            sentData = true;
+                        } catch (IOException e) {
+                            System.out.print("[wts] IOException: ");
+                            System.out.println(e.getMessage());
+                            break;
                         }
-
-                        if (sentData) {
-                            this.currentClientOut.flush();
-                        }
-
-                        Thread.sleep(10); // bad, use blocking queue instead
-                    } catch (InterruptedException e) {
-                        System.out.println("[wts] InterruptedException");
                     }
+
+                    if (sentData) {
+                        this.currentClientOut.flush();
+                    }
+
+                    Thread.sleep(10); // bad, use blocking queue instead
                 }
 
                 System.out.println("Web telemetry streamer: Client disconnected !");
                 channelMapSent = false;
+            }   catch (IOException e) {
+                System.out.println("[wts] Client connection dropped: " + e.getMessage());
+            } catch (InterruptedException e) {
+                System.out.println("[wts] InterruptedException: + " + e.getMessage());
+                //  break; // don't exit
+            } finally {
+                System.out.println("Web telemetry streamer: Client disconnected !");
+                channelMapSent = false;
             }
-        } catch (Exception e) {
-            System.out.println("[wts] Exception: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
