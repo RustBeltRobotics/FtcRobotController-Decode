@@ -75,9 +75,7 @@ public class WebTelemetryStreamer implements Runnable {
 
     private void listen(int port) throws IOException {
         this.serverSocket = new ServerSocket(port);
-
-        this.serverSocket.setSoTimeout(2000);
-
+        
         try {
             while (true) {
                 waitForClient();
