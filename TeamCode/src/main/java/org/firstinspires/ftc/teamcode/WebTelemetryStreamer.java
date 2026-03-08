@@ -82,7 +82,8 @@ public class WebTelemetryStreamer implements Runnable {
                 waitForClient();
                 messageQueue.clear();
 
-                while (currentClient.isConnected()) {
+                boolean exitloop = false;
+                while (currentClient.isConnected() && !exitloop) {
                     byte[] message;
                     boolean sentData = false;
                     while ((message = messageQueue.poll()) != null) {
@@ -92,6 +93,7 @@ public class WebTelemetryStreamer implements Runnable {
                         } catch (IOException e) {
                             System.out.print("[wts] IOException: ");
                             System.out.println(e.getMessage());
+                            exitloop = true;
                             break;
                         }
                     }
