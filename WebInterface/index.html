@@ -439,13 +439,13 @@
                     
                     // Draw tooltips
                     if (tooltipData.length > 0) {
-                        drawTooltip(mouseX, mouseY, tooltipData, getY, minY, maxY);
+                        drawTooltip(mouseX, mouseY, tooltipData, getY, minY, maxY, hoverTime);
                     }
                 }
             }
         }
 
-        function drawTooltip(x, y, data, getY, minY, maxY) {
+        function drawTooltip(x, y, data, getY, minY, maxY, hoverTime) {
             ctx.save();
             ctx.font = "14px sans-serif";
             ctx.textBaseline = "middle";
@@ -456,10 +456,27 @@
 
             // Draw each channel value at its Y position
             data.forEach((item) => {
-                const yPos = getY(item.value);
+                // Interpolate value based on hover time
+                let interpolatedValue = item.value;
+                
+                // Find the two points surrounding hoverTime for this channel
+                const points = series[item.key];
+                if (points.length > 1) {
+                    for (let i = 0; i < points.length - 1; i++) {
+                        if (points[i].x <= hoverTime && hoverTime <= points[i + 1].x) {
+                            const p1 = points[i];
+                            const p2 = points[i + 1];
+                            const t = (hoverTime - p1.x) / (p2.x - p1.x);
+                            interpolatedValue = p1.y + (p2.y - p1.y) * t;
+                            break;
+                        }
+                    }
+                }
+                
+                const yPos = getY(interpolatedValue);
                 
                 // Measure text width
-                const text = item.key + ': ' + item.value.toFixed(2);
+                const text = item.key + ': ' + interpolatedValue.toFixed(2);
                 const textWidth = ctx.measureText(text).width;
                 const boxWidth = textWidth + (padding * 2);
                 const boxHeight = lineHeight;
