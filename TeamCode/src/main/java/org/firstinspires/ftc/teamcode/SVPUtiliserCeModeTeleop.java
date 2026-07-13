@@ -52,6 +52,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+
 import java.io.IOException;
 import java.util.Locale;
 
@@ -104,6 +106,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
     double yawZero;
 
+    SparkFunOTOS myOtos;
 
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
@@ -114,6 +117,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
+
+        myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
 
         System.out.println("MAIN ACTUAL OPCODE YAY A");
 
@@ -310,6 +315,12 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("current_intake", ((DcMotorEx) intake).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_feeder", ((DcMotorEx) feeder).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_feeder2", ((DcMotorEx) feeder2).getCurrent(CurrentUnit.MILLIAMPS));
+
+            SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+
+            webTelemetryStreamer.sendData("sf_x", pos.x);
+            webTelemetryStreamer.sendData("sf_y", pos.y);
+            webTelemetryStreamer.sendData("sf_h", pos.h);
 
             // get voltage sensor (there are two one is on the expansion hub and this is not ideal as it does not specify which one to use)
             for (VoltageSensor sensor : hardwareMap.voltageSensor) {
