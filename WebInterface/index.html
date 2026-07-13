@@ -1070,15 +1070,19 @@
             const colorBoxSize = 24;
             const padding = 13;
 
+            // filter keys:
+            const filteredKeys = keys.filter(key=>channelVisibility[key]);
+
             // Calculate width needed for the legend box
             let maxWidth = 0;
-            keys.forEach(key => {
+            filteredKeys.forEach(key => {
                 const w = ctx.measureText(key).width;
                 if (w > maxWidth) maxWidth = w;
             });
 
+
             const boxWidth = maxWidth + colorBoxSize + 15 + (padding * 2);
-            const boxHeight = (keys.length * lineHeight) + padding;
+            const boxHeight = (filteredKeys.length * lineHeight) + padding;
 
             // Draw Semi-transparent background
             ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
@@ -1088,8 +1092,9 @@
             ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
 
             // Draw items
-            keys.forEach((key, index) => {
-                const yPos = boxY + padding + (index * lineHeight) + (lineHeight / 2) - 6; 
+
+            filteredKeys.forEach((key, index) => {
+                const yPos = boxY + padding + (index * lineHeight) + (lineHeight / 2) - 12; 
                 
                 // Color swatch
                 ctx.fillStyle = keyColorMap[key];
