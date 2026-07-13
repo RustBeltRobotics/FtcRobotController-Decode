@@ -123,11 +123,6 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
 
 
-        otosXController = new PIDController(0.08, 0.00001, 0.0001);
-        otosYController = new PIDController(0.08, 0.00001, 0.0001);
-        otosRotationController = new PIDController(0.004, 0.00001, 0.0001);
-
-
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
 
@@ -168,6 +163,19 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webInterface.addParameter("Ki_shooter", defaults_shooter.i);
         webInterface.addParameter("Kd_shooter", defaults_shooter.d);
         webInterface.addParameter("Kf_shooter", defaults_shooter.f);
+
+
+        otosXController = new PIDController(0.08, 0.00001, 0.0001);
+        otosYController = new PIDController(0.08, 0.00001, 0.0001);
+        otosRotationController = new PIDController(0.004, 0.00001, 0.0001);
+
+        webInterface.addParameter("Kp_otos", 0.08);
+        webInterface.addParameter("Ki_otos", 0.00001);
+        webInterface.addParameter("Kd_otos", 0.0001);
+
+        webInterface.addParameter("Kp_otosh", 0.004);
+        webInterface.addParameter("Ki_otosh", 0.00001);
+        webInterface.addParameter("Kd_otosh", 0.0001);
 
 
 //        webInterface.addParameter("dbsizec", 0.3);
@@ -263,10 +271,17 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addLine("The left joystick sets the robot direction");
         telemetry.addLine("Moving the right joystick left and right turns the robot");
 
-//        boolean doingOtosTest = gamepad1.back;
+        boolean doingOtosTest = gamepad1.back;
 
 
-        doingOtosTest = doingOtosTest ^ gamepad1.backWasPressed();
+//        doingOtosTest = doingOtosTest ^ gamepad1.backWasPressed();
+        
+//        if (gamepad1.leftBumperWasPressed()) {
+//            doingOtosTest = true;
+//        }
+//        if (gamepad1.leftBumperWasReleased()) {
+//            doingOtosTest = false;
+//        }
 
         driveController.drivingPID.setCoefs(
                 webInterface.getParameter("Kp_drive"),
@@ -421,6 +436,24 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webInterface.setParameter("shooter_power", webInterface.getParameter("shooter_power") - 0.05);
         }
 
+
+        otosXController.setCoefs(
+                webInterface.getParameter("Kp_otos"),
+                webInterface.getParameter("Ki_otos"),
+                webInterface.getParameter("Kd_otos")
+        );
+
+        otosYController.setCoefs(
+                webInterface.getParameter("Kp_otos"),
+                webInterface.getParameter("Ki_otos"),
+                webInterface.getParameter("Kd_otos")
+        );
+
+        otosRotationController.setCoefs(
+                webInterface.getParameter("Kp_otosh"),
+                webInterface.getParameter("Ki_otosh"),
+                webInterface.getParameter("Kd_otosh")
+        );
 
         // OTOS position PID test:
         if (doingOtosTest) {
