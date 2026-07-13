@@ -30,6 +30,87 @@
             margin-bottom: 15px;
             width: 100%;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            align-items: stretch;
+        }
+        .graph-wrapper {
+            position: relative;
+            background: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            min-width: 200px;
+        }
+        .graph-wrapper.active {
+            border: 2px solid #0066cc;
+        }
+        .graph-wrapper canvas {
+            background: #fff;
+            display: block;
+            max-width: 100%;
+            height: auto;
+            cursor: grab;
+        }
+        .graph-wrapper canvas:active {
+            cursor: grabbing;
+        }
+        .graph-close-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,255,255,0.8);
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 10;
+            color: #333;
+        }
+        .graph-close-btn:hover {
+            background: #cc0000;
+            color: #fff;
+            border-color: #cc0000;
+        }
+        .graph-resizer {
+            position: absolute;
+            right: -8px;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            cursor: ew-resize;
+            z-index: 5;
+            background: transparent;
+        }
+        .graph-resizer:hover, .graph-resizer.dragging {
+            background: rgba(0, 102, 204, 0.2);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .action-buttons button {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px 14px;
+            font-family: sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: background 0.1s;
+        }
+        .action-buttons button:hover {
+            background: #f9f9f9;
+            border-color: #ccc;
         }
         #diagnostics-container {
             display: flex;
@@ -89,7 +170,6 @@
     <div id="channels-container"></div>
     <br>
     <div id="canvas-container">
-        <canvas id="canvas"></canvas>
     </div>
     <br>
     <div id="diagnostics-container">
@@ -118,13 +198,17 @@
         </div>
     </div>
     <br>
-    <button onclick="saveHistory()">save data</button>
+    <div class="action-buttons">
+        <button onclick="saveHistory()">save data <span id="history-counter">(0)</span></button>
+        <button onclick="promptConnectionSettings()">Connect Settings</button>
+        <button onclick="addGraphButton()">Add Graph</button>
+    </div>
 
     <script>
         const slidersElement = document.getElementById("sliders");
-        const canvas = document.getElementById("canvas");
+        let canvas = null;
         const canvasContainer = document.getElementById("canvas-container");
-        const ctx = canvas.getContext("2d");
+        let ctx = null;
 
         // --- Diagnostics System (Initialize First) ---
         let diagnosticsState = {
@@ -141,6 +225,7 @@
         };
 
         const MAX_LOG_ENTRIES = 100;
+        const MAX_DATA_POINTS = 150;
 
         function addLogEntry(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
@@ -208,22 +293,29 @@
 
         // Set canvas resolution based on container width
         function resizeCanvas() {
-            const rect = canvasContainer.getBoundingClientRect();
-            canvas.width = rect.width * 2;
-            canvas.height = 450 * 2;
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = '450px';
+            graphs.forEach(g => {
+                const rect = g.element.getBoundingClientRect();
+                g.canvas.width = rect.width * 2;
+                g.canvas.height = 450 * 2;
+                g.canvas.style.width = rect.width + 'px';
+                g.canvas.style.height = '450px';
+            });
         }
         
-        resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
         // Configuration
         // Allow alternative host using hash
-        const HOST = document.location.hash.slice(1) || '192.168.43.1';
+        const urlParams = new URLSearchParams(window.location.search);
+        const connectParam = urlParams.get('connect');
+        let HOST = document.location.hash.slice(1) || '192.168.43.1';
         // const PORT1 = 8885;
-        const PORT2 = 8886;
-        const MAX_DATA_POINTS = 150;
+        let PORT2 = 8886;
+        if (connectParam) {
+            const parts = connectParam.split(':');
+            HOST = parts[0];
+            if (parts[1]) PORT2 = parseInt(parts[1], 10);
+        }
 
         console.log(`Connecting to ${HOST}:${PORT2}`)
         
@@ -427,26 +519,218 @@
         const keyColorMap = {}; 
         let colorIndex = 0;
         // Track visibility of each channel
-        const channelVisibility = {};
+        let channelVisibility = {};
         
         // Mouse tracking
         let mouseX = null;
         let mouseY = null;
         let isMouseOverCanvas = false;
 
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            mouseX = (e.clientX - rect.left) * scaleX;
-            mouseY = (e.clientY - rect.top) * scaleY;
-            isMouseOverCanvas = true;
-            // render();
+        // --- Multiple Graphs and Settings State System ---
+        let graphs = [];
+        let activeGraphIndex = 0;
+        let windowGraphObj = null;
+
+        let isDraggingResizer = false;
+        let currentResizerGraph = null;
+        let startResizerX = 0;
+        let startFlexGrow = 1;
+
+        function promptConnectionSettings() {
+            const currentConnect = new URLSearchParams(window.location.search).get('connect') || `${HOST}:${PORT2}`;
+            const ipPort = prompt("Enter IP:Port to connect to:", currentConnect);
+            if (ipPort) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('connect', ipPort);
+                window.location.href = url.toString();
+            }
+        }
+
+        function saveSettingsToURL() {
+            const settingsObj = {
+                graphs: graphs.map(g => ({
+                    channelVisibility: g.channelVisibility,
+                    zoomScale: g.zoomScale || 1,
+                    zoomPan: g.zoomPan || 0,
+                    flexGrow: g.flexGrow || 1
+                }))
+            };
+            const url = new URL(window.location.href);
+            url.searchParams.set('settings', JSON.stringify(settingsObj));
+            window.history.replaceState({}, '', url.toString());
+        }
+
+        function loadSettingsFromURL() {
+            const param = new URLSearchParams(window.location.search).get('settings');
+            if (param) {
+                try {
+                    const obj = JSON.parse(param);
+                    if (obj && Array.isArray(obj.graphs)) return obj.graphs;
+                } catch(e) {
+                    console.error("Failed to parse settings JSON", e);
+                }
+            }
+            return null;
+        }
+
+        function createGraphInstance(savedState = null) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'graph-wrapper';
+            
+            const c = document.createElement('canvas');
+            
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'graph-close-btn';
+            closeBtn.textContent = 'X';
+            
+            const resizer = document.createElement('div');
+            resizer.className = 'graph-resizer';
+            
+            wrapper.appendChild(c);
+            wrapper.appendChild(closeBtn);
+            wrapper.appendChild(resizer);
+            canvasContainer.appendChild(wrapper);
+            
+            const graphObj = {
+                element: wrapper,
+                canvas: c,
+                ctx: c.getContext('2d'),
+                channelVisibility: savedState ? savedState.channelVisibility : {},
+                zoomScale: savedState ? savedState.zoomScale : 1,
+                zoomPan: savedState ? savedState.zoomPan : 0,
+                flexGrow: savedState ? savedState.flexGrow : 1,
+                isMouseOverCanvas: false,
+                mouseX: null,
+                mouseY: null,
+                lastMinX: 0,
+                lastMaxX: 0,
+                isPanning: false,
+                startPanX: 0,
+                startZoomPan: 0
+            };
+            
+            wrapper.style.flex = `${graphObj.flexGrow} 1 0%`;
+            
+            c.addEventListener('mousemove', (e) => {
+                const rect = c.getBoundingClientRect();
+                const scaleX = c.width / rect.width;
+                const scaleY = c.height / rect.height;
+                graphObj.mouseX = (e.clientX - rect.left) * scaleX;
+                graphObj.mouseY = (e.clientY - rect.top) * scaleY;
+                graphObj.isMouseOverCanvas = true;
+            });
+
+            c.addEventListener('mouseleave', () => {
+                graphObj.isMouseOverCanvas = false;
+            });
+
+            wrapper.addEventListener('click', () => {
+                setActiveGraph(graphs.indexOf(graphObj));
+            });
+
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeGraphInstance(graphObj);
+            });
+
+            resizer.addEventListener('mousedown', (e) => {
+                isDraggingResizer = true;
+                currentResizerGraph = graphObj;
+                startResizerX = e.clientX;
+                startFlexGrow = graphObj.flexGrow;
+                resizer.classList.add('dragging');
+                e.stopPropagation();
+                e.preventDefault();
+            });
+
+            c.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+                graphObj.zoomScale = Math.max(1, (graphObj.zoomScale || 1) * zoomFactor);
+                if (graphObj.zoomScale === 1) graphObj.zoomPan = 0;
+                saveSettingsToURL();
+            });
+
+            c.addEventListener('mousedown', (e) => {
+                if (e.metaKey) return;
+                graphObj.isPanning = true;
+                graphObj.startPanX = e.clientX;
+                graphObj.startZoomPan = graphObj.zoomPan || 0;
+            });
+            
+            return graphObj;
+        }
+
+        function addGraphButton() {
+            const g = createGraphInstance();
+            graphs.push(g);
+            resizeCanvas();
+            setActiveGraph(graphs.length - 1);
+            saveSettingsToURL();
+        }
+
+        function removeGraphInstance(graphObj) {
+            if (graphs.length <= 1) return;
+            const index = graphs.indexOf(graphObj);
+            if (index > -1) {
+                graphs.splice(index, 1);
+                graphObj.element.remove();
+                if (activeGraphIndex >= graphs.length) {
+                    activeGraphIndex = graphs.length - 1;
+                }
+                setActiveGraph(activeGraphIndex);
+                resizeCanvas();
+                saveSettingsToURL();
+            }
+        }
+
+        function setActiveGraph(index) {
+            if (index < 0 || index >= graphs.length) return;
+            activeGraphIndex = index;
+            graphs.forEach((g, i) => {
+                if (i === activeGraphIndex) g.element.classList.add('active');
+                else g.element.classList.remove('active');
+            });
+            syncCheckboxesUI();
+        }
+
+        function syncCheckboxesUI() {
+            const activeGraph = graphs[activeGraphIndex];
+            if (!activeGraph) return;
+            Object.keys(series).forEach(key => {
+                const box = document.getElementById(`channel-${key}`);
+                if (box) box.checked = !!activeGraph.channelVisibility[key];
+            });
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDraggingResizer && currentResizerGraph) {
+                const dx = e.clientX - startResizerX;
+                currentResizerGraph.flexGrow = Math.max(0.2, startFlexGrow + dx / 200);
+                currentResizerGraph.element.style.flex = `${currentResizerGraph.flexGrow} 1 0%`;
+                resizeCanvas();
+                saveSettingsToURL();
+            }
+            graphs.forEach(g => {
+                if (g.isPanning) {
+                    const dx = e.clientX - g.startPanX;
+                    const rect = g.canvas.getBoundingClientRect();
+                    const screenGraphW = rect.width * ((g.canvas.width - PADDING.left - PADDING.right) / g.canvas.width);
+                    const currentRange = (g.lastMaxX - g.lastMinX) || 1000;
+                    const timeDelta = (dx / screenGraphW) * currentRange;
+                    g.zoomPan = g.startZoomPan - timeDelta;
+                    saveSettingsToURL();
+                }
+            });
         });
 
-        canvas.addEventListener('mouseleave', () => {
-            isMouseOverCanvas = false;
-            // render();
+        window.addEventListener('mouseup', () => {
+            if (isDraggingResizer) {
+                document.querySelectorAll('.graph-resizer').forEach(r => r.classList.remove('dragging'));
+                isDraggingResizer = false;
+                currentResizerGraph = null;
+            }
+            graphs.forEach(g => { g.isPanning = false; });
         });
 
         function applyUpdate(updateObj) {
@@ -454,6 +738,7 @@
             if (keys.length === 0) return;
 
             fullHistory.push([updateObj, Date.now()]);
+            document.getElementById('history-counter').textContent = `(${fullHistory.length})`;
 
             const now = Date.now();
 
@@ -466,7 +751,11 @@
                     keyColorMap[key] = PALETTE[colorIndex % PALETTE.length];
                     colorIndex++;
                     // Initialize visibility as true for new channels
-                    channelVisibility[key] = true;
+                    graphs.forEach((g, idx) => {
+                        if (g.channelVisibility[key] === undefined) {
+                            g.channelVisibility[key] = (idx === 0);
+                        }
+                    });
                     // Create checkbox for this channel
                     createChannelCheckbox(key);
                 }
@@ -485,18 +774,37 @@
 
         function createChannelCheckbox(channelName) {
             const channelsContainer = document.getElementById('channels-container');
+            if (document.getElementById(`channel-${channelName}`)) return;
             const checkbox = document.createElement('div');
             checkbox.className = 'channel-checkbox';
             checkbox.innerHTML = `
-                <input type="checkbox" id="channel-${channelName}" checked>
+                <input type="checkbox" id="channel-${channelName}">
                 <label for="channel-${channelName}">${channelName}</label>
             `;
             channelsContainer.appendChild(checkbox);
             
+            const inputElement = document.getElementById(`channel-${channelName}`);
+            const activeGraph = graphs[activeGraphIndex];
+            if (activeGraph) inputElement.checked = !!activeGraph.channelVisibility[channelName];
+
             // Add event listener
-            document.getElementById(`channel-${channelName}`).addEventListener('change', (e) => {
-                channelVisibility[channelName] = e.target.checked;
+            inputElement.addEventListener('change', (e) => {
+                if (graphs[activeGraphIndex]) {
+                    graphs[activeGraphIndex].channelVisibility[channelName] = e.target.checked;
+                    saveSettingsToURL();
+                }
                 // render();
+            });
+
+            checkbox.addEventListener('mouseenter', (e) => {
+                if (e.metaKey) {
+                    const input = checkbox.querySelector('input');
+                    input.checked = !input.checked;
+                    if (graphs[activeGraphIndex]) {
+                        graphs[activeGraphIndex].channelVisibility[channelName] = input.checked;
+                        saveSettingsToURL();
+                    }
+                }
             });
         }
 
@@ -512,29 +820,49 @@
             a.click();
         }
 
+        // Initialize multi-graph arrangement from URL or fallback
+        const savedGraphsState = loadSettingsFromURL();
+        if (savedGraphsState && savedGraphsState.length > 0) {
+            savedGraphsState.forEach(state => graphs.push(createGraphInstance(state)));
+        } else {
+            graphs.push(createGraphInstance());
+        }
+        setActiveGraph(0);
+        resizeCanvas();
+
         // setInterval(render, 500);
         render();
 
         function render() {
-            // 1. Clear Screen
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            graphs.forEach((g, idx) => {
+                canvas = g.canvas;
+                ctx = g.ctx;
+                channelVisibility = g.channelVisibility;
+                isMouseOverCanvas = g.isMouseOverCanvas;
+                mouseX = g.mouseX;
+                mouseY = g.mouseY;
+                windowGraphObj = g;
 
-            // red line if not connected
-            if (Object.keys(channelIdToName).length === 0) {
-                ctx.strokeStyle = "red";
-                ctx.lineWidth = 4;
-                ctx.strokeRect(0, 0, canvas.width, canvas.height)
-            } else {
-                ctx.strokeStyle = "green";
-                ctx.lineWidth = 4;
-                ctx.strokeRect(0, 0, canvas.width, canvas.height)
-            }
+                // 1. Clear Screen
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // red line if not connected
+                if (Object.keys(channelIdToName).length === 0) {
+                    ctx.strokeStyle = "red";
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height)
+                } else {
+                    ctx.strokeStyle = "green";
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height)
+                }
 
 
-            drawGraph();
+                drawGraph();
 
-            // 5. Draw Legend
-            drawLegend();
+                // 5. Draw Legend
+                drawLegend();
+            });
 
             requestAnimationFrame(render);
         }
@@ -562,6 +890,20 @@
             }
 
             if (!hasData) return;
+
+            if (windowGraphObj) {
+                windowGraphObj.lastMinX = minX;
+                windowGraphObj.lastMaxX = maxX;
+                const totalXRange = maxX - minX || 1;
+                const scale = windowGraphObj.zoomScale || 1;
+                const pan = windowGraphObj.zoomPan || 0;
+                if (scale !== 1 || pan !== 0) {
+                    const midX = (minX + maxX) / 2;
+                    const halfWidth = (totalXRange / scale) / 2;
+                    minX = midX - halfWidth + pan;
+                    maxX = midX + halfWidth + pan;
+                }
+            }
 
             // Add a tiny buffer to Y range so lines don't touch top/bottom perfectly
             const yRange = maxY - minY || 1; // avoid divide by zero
