@@ -56,6 +56,7 @@ import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Vector;
 
 /*
  * This OpMode illustrates how to program your robot to drive field relative.  This means
@@ -111,9 +112,17 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     // This declares the IMU needed to get the current direction the robot is facing
 //    IMU imu;
 
+    PIDController otosXController;
+    PIDController otosYController;
+
     @Override
     public void runOpMode() {
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
+
+
+        otosXController = new PIDController(0.08, 0.00001, 0.0001);
+        otosYController = new PIDController(0.08, 0.00001, 0.0001);
+
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
         imu.initialize(parameters);
@@ -250,6 +259,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addLine("The left joystick sets the robot direction");
         telemetry.addLine("Moving the right joystick left and right turns the robot");
 
+        boolean doingOtosTest = gamepad1.back;
+
         driveController.drivingPID.setCoefs(
                 webInterface.getParameter("Kp_drive"),
                 webInterface.getParameter("Ki_drive"),
@@ -286,6 +297,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addData("roll", formatAngle(angles.angleUnit, angles.secondAngle));
         telemetry.addData("pitch", formatAngle(angles.angleUnit, angles.thirdAngle));
 
+        SparkFunOTOS.Pose2D otosPos = myOtos.getPosition();
+
         // send slower to stop network getting backed up (maybe it would help if I don't flush data inside of sendData - oh wait I'm already doing that)
         if (loopcounter % 3 == 0) {
             webTelemetryStreamer.sendData("heading", angles.firstAngle);
@@ -316,11 +329,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("current_feeder", ((DcMotorEx) feeder).getCurrent(CurrentUnit.MILLIAMPS));
             webTelemetryStreamer.sendData("current_feeder2", ((DcMotorEx) feeder2).getCurrent(CurrentUnit.MILLIAMPS));
 
-            SparkFunOTOS.Pose2D pos = myOtos.getPosition();
 
-            webTelemetryStreamer.sendData("sf_x", pos.x);
-            webTelemetryStreamer.sendData("sf_y", pos.y);
-            webTelemetryStreamer.sendData("sf_h", pos.h);
+            webTelemetryStreamer.sendData("sf_x", otosPos.x);
+            webTelemetryStreamer.sendData("sf_y", otosPos.y);
+            webTelemetryStreamer.sendData("sf_h", otosPos.h);
 
             // get voltage sensor (there are two one is on the expansion hub and this is not ideal as it does not specify which one to use)
             for (VoltageSensor sensor : hardwareMap.voltageSensor) {
@@ -346,14 +358,16 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         // 90° rotation
 //        drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
-        if (!gamepad1.right_bumper) {
-            // working:
-           driveController.driveFieldRelative(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
-            // should attempt to correct for unintentional rotation
-//            driveController.driveFieldRelativeAuto(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
-        } else {
-            telemetry.addLine("RIGHT BUMPER");
-            drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        if (!doingOtosTest) {
+            if (!gamepad1.right_bumper) {
+                // working:
+                driveController.driveFieldRelative(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
+                // should attempt to correct for unintentional rotation
+                //            driveController.driveFieldRelativeAuto(jsrc(gamepad1.left_stick_y), jsrc(gamepad1.left_stick_x), jsrc(gamepad1.right_stick_x));
+            } else {
+                telemetry.addLine("RIGHT BUMPER");
+                drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+            }
         }
 
 //        if (gamepad1.left_bumper) {
@@ -401,6 +415,24 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         }
 
 
+        // OTOS position PID test:
+        if (doingOtosTest) {
+            telemetry.addLine("otosTest");
+
+            otosXController.setTarget(2);
+            otosYController.setTarget(3);
+
+            double xSignal = otosXController.loop(otosPos.x);
+            double ySignal = otosYController.loop(otosPos.y);
+
+
+            webTelemetryStreamer.sendData("xSignal", xSignal);
+            webTelemetryStreamer.sendData("ySignal", ySignal);
+
+            driveController.driveFieldRelative(xSignal, ySignal, 0);
+        }
+
+
 
         telemetry.addData("shooter_power", webInterface.getParameter("shooter_power"));
 
@@ -415,6 +447,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     String formatDegrees(double degrees){
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
     }
+
 
     private double jsrc(double power) {
 //        double a = 3.7;
