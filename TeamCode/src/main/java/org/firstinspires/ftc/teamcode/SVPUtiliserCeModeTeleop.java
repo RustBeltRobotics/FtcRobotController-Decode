@@ -114,6 +114,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
     PIDController otosXController;
     PIDController otosYController;
+    PIDController otosRotationController;
 
     @Override
     public void runOpMode() {
@@ -122,6 +123,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         otosXController = new PIDController(0.08, 0.00001, 0.0001);
         otosYController = new PIDController(0.08, 0.00001, 0.0001);
+        otosRotationController = new PIDController(0.004, 0.00001, 0.0001);
 
 
         imu = hardwareMap.get(Rev9AxisImu.class, "external_imu");
@@ -421,15 +423,17 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
             otosXController.setTarget(2);
             otosYController.setTarget(3);
+            otosRotationController.setTarget(0);
 
             double xSignal = otosXController.loop(otosPos.x);
             double ySignal = otosYController.loop(otosPos.y);
-
+            double rotationSignal = -otosRotationController.loop(otosPos.h);
 
             webTelemetryStreamer.sendData("xSignal", xSignal);
             webTelemetryStreamer.sendData("ySignal", ySignal);
+            webTelemetryStreamer.sendData("rotationSignal", rotationSignal);
 
-            driveController.driveFieldRelative(xSignal, ySignal, 0);
+            driveController.driveFieldRelative(xSignal, ySignal, rotationSignal);
         }
 
 
