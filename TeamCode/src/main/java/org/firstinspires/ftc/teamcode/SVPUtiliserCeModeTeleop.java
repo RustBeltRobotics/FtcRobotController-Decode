@@ -116,6 +116,8 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
     PIDController otosYController;
     PIDController otosRotationController;
 
+    boolean doingOtosTest = false;
+
     @Override
     public void runOpMode() {
         Rev9AxisImu.Parameters parameters = new Rev9AxisImu.Parameters(new Rev9AxisImuOrientationOnRobot(Rev9AxisImuOrientationOnRobot.LogoFacingDirection.UP, Rev9AxisImuOrientationOnRobot.I2cPortFacingDirection.BACKWARD));
@@ -261,7 +263,10 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addLine("The left joystick sets the robot direction");
         telemetry.addLine("Moving the right joystick left and right turns the robot");
 
-        boolean doingOtosTest = gamepad1.back;
+//        boolean doingOtosTest = gamepad1.back;
+
+
+        doingOtosTest = doingOtosTest ^ gamepad1.backWasPressed();
 
         driveController.drivingPID.setCoefs(
                 webInterface.getParameter("Kp_drive"),
@@ -441,6 +446,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         telemetry.addData("shooter_power", webInterface.getParameter("shooter_power"));
 
 //        gamepad2.resetEdgeDetection();
+        gamepad1.resetEdgeDetection(); // used to toggle otos test thing
         telemetry.update();
     }
 
