@@ -799,9 +799,8 @@
                 ctx.lineTo(xPos, canvas.height - PADDING.bottom);
                 ctx.stroke();
 
-                // Label (Show seconds relative to start of window)
-                // If you want absolute time, use new Date(val).toLocaleTimeString()
-                const secondsLabel = ((val - minX) / 1000).toFixed(1) + "s";
+                // hm
+                const secondsLabel = ((val - maxX) / 1000).toFixed(1) + "s";
                 ctx.fillText(secondsLabel, xPos, canvas.height - PADDING.bottom + 5);
             }
 
