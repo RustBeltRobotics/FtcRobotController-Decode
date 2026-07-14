@@ -127,6 +127,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         imu.initialize(parameters);
 
         myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
+        myOtos.resetTracking();
 
         System.out.println("MAIN ACTUAL OPCODE YAY A");
 
@@ -165,13 +166,16 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
         webInterface.addParameter("Kf_shooter", defaults_shooter.f);
 
 
-        otosXController = new PIDController(0.08, 0.00001, 0.0001);
-        otosYController = new PIDController(0.08, 0.00001, 0.0001);
-        otosRotationController = new PIDController(0.004, 0.00001, 0.0001);
+        // do not adjust these
+        otosXController = new PIDController(0.0, 0.0, 0.0);
+        otosYController = new PIDController(0.0, 0.0, 0.0);
+        otosRotationController = new PIDController(0.0, 0.0, 0.0);
+        // ---
 
+        // adjust these
         webInterface.addParameter("Kp_otos", 0.08);
         webInterface.addParameter("Ki_otos", 0.00001);
-        webInterface.addParameter("Kd_otos", 0.0001);
+        webInterface.addParameter("Kd_otos", 0.35);
 
         webInterface.addParameter("Kp_otosh", 0.004);
         webInterface.addParameter("Ki_otosh", 0.00001);
@@ -275,7 +279,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
 
 //        doingOtosTest = doingOtosTest ^ gamepad1.backWasPressed();
-        
+
 //        if (gamepad1.leftBumperWasPressed()) {
 //            doingOtosTest = true;
 //        }
@@ -471,7 +475,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("ySignal", ySignal);
             webTelemetryStreamer.sendData("rotationSignal", rotationSignal);
 
-            driveController.driveFieldRelative(xSignal, ySignal, rotationSignal);
+            driveController.drive(xSignal, ySignal, rotationSignal);
         }
 
 
