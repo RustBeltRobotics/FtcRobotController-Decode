@@ -174,7 +174,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
 
         // adjust these
         webInterface.addParameter("Kp_otos", 0.08);
-        webInterface.addParameter("Ki_otos", 0.00001);
+        webInterface.addParameter("Ki_otos", 0.00003);
         webInterface.addParameter("Kd_otos", 0.35);
 
         webInterface.addParameter("Kp_otosh", 0.004);
@@ -475,7 +475,7 @@ public class SVPUtiliserCeModeTeleop extends LinearOpMode {
             webTelemetryStreamer.sendData("ySignal", ySignal);
             webTelemetryStreamer.sendData("rotationSignal", rotationSignal);
 
-            driveController.drive(xSignal, ySignal, rotationSignal);
+            driveController.driveFieldRelative(xSignal, ySignal, rotationSignal);
         }
 
 
